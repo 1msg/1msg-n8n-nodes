@@ -14,7 +14,7 @@
 		"url": "git+https://github.com/1msg/1msg-n8n-nodes.git"
 	},
 	"scripts": {
-		"build": "n8n-node build",
+		"build": "n8n-node build && node scripts/copy-codex.js",
 		"build:watch": "tsc --watch",
 		"dev": "n8n-node dev",
 		"lint": "n8n-node lint",

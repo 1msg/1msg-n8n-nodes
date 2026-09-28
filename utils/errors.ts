@@ -45,6 +45,9 @@ export function humanizeMessage(message: string, statusCode?: number): string {
 	if (lower.includes('username routing is disabled')) {
 		return `Sending by username is turned off for this channel. Use a phone number or BSUID. (${text})`;
 	}
+	if (lower.includes('template is not defined')) {
+		return '1MSG did not send the template because its name, language, or namespace is missing. Refresh the template list and choose the template again.';
+	}
 	if (lower.includes('template') && (lower.includes('not found') || lower.includes('does not exist'))) {
 		return `That template is not available on this channel. Pick an approved template from the list. (${text})`;
 	}
@@ -58,21 +61,40 @@ export function humanizeMessage(message: string, statusCode?: number): string {
 	return '1MSG returned an error.';
 }
 
+function textFromUnknown(value: unknown): string {
+	if (typeof value !== 'string') return extractMessage(value);
+	const trimmed = value.trim();
+	const jsonAt = trimmed.indexOf('{');
+	if (jsonAt >= 0) {
+		try {
+			const extracted = extractMessage(JSON.parse(trimmed.slice(jsonAt)) as unknown);
+			if (extracted) return extracted;
+		} catch {
+			// The text is not JSON. Fall through to the raw message.
+		}
+	}
+	return trimmed.replace(/^\d{3}\s*-\s*/, '');
+}
+
 export function messageFromFailure(error: unknown): string {
 	if (!error || typeof error !== 'object') {
-		return humanizeMessage(error instanceof Error ? error.message : '');
+		return humanizeMessage(error instanceof Error ? error.message : textFromUnknown(error));
 	}
 	const record = error as {
 		message?: unknown;
 		statusCode?: unknown;
 		httpCode?: unknown;
+		status?: unknown;
 		error?: unknown;
+		body?: unknown;
 		response?: { body?: unknown; statusCode?: unknown };
-		cause?: { response?: { body?: unknown }; statusCode?: unknown };
+		cause?: { response?: { body?: unknown }; statusCode?: unknown; message?: unknown };
 	};
-	const body = record.response?.body ?? record.cause?.response?.body ?? record.error;
-	const extracted = extractMessage(body) || (typeof record.message === 'string' ? record.message : '');
-	const status = Number(record.statusCode || record.httpCode || record.response?.statusCode || record.cause?.statusCode);
+	const body = record.response?.body ?? record.cause?.response?.body ?? record.body ?? record.error;
+	const extracted = extractMessage(body) || textFromUnknown(record.message) || textFromUnknown(record.cause?.message);
+	const status = Number(
+		record.statusCode || record.httpCode || record.status || record.response?.statusCode || record.cause?.statusCode,
+	);
 	return humanizeMessage(extracted, Number.isFinite(status) && status > 0 ? status : undefined);
 }
 

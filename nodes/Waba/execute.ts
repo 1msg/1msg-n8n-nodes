@@ -100,7 +100,7 @@ async function sendTemplate(
 				);
 
 	const payload: IDataObject = {
-		...templateSendIdentity(template),
+		...templateSendIdentity(template, templates),
 		...recipient,
 	};
 	if (params.length) payload.params = params;

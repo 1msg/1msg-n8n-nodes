@@ -46,8 +46,21 @@ function asRecord(value: unknown): ComponentRecord | undefined {
 }
 
 function componentList(components: unknown): ComponentRecord[] {
-	if (!Array.isArray(components)) return [];
-	return components.map(asRecord).filter((item): item is ComponentRecord => Boolean(item));
+	const parsed = normalizeComponents(components);
+	if (!Array.isArray(parsed)) return [];
+	return parsed.map(asRecord).filter((item): item is ComponentRecord => Boolean(item));
+}
+
+/** 1MSG sometimes returns template components as a JSON string. */
+export function normalizeComponents(components: unknown): unknown {
+	if (typeof components !== 'string') return components;
+	const trimmed = components.trim();
+	if (!trimmed) return [];
+	try {
+		return JSON.parse(trimmed) as unknown;
+	} catch {
+		return [];
+	}
 }
 
 function upper(value: unknown): string {
@@ -335,7 +348,7 @@ export function templateKey(template: TemplateRecord): string {
 export function templateLabel(template: TemplateRecord): string {
 	const name = template.name || template.id || 'template';
 	const language = languageCode(template.language) || 'unknown language';
-	const category = template.category || 'template';
+	const category = template.category ? upper(template.category) : 'TEMPLATE';
 	return `${name} · ${language} · ${category}`;
 }
 
@@ -374,7 +387,38 @@ export function templatesFromResponse(response: unknown): TemplateRecord[] {
 	return [];
 }
 
-export function templateSendIdentity(template: TemplateRecord): {
+const NAMESPACE_KEYS = ['namespace', 'message_template_namespace', 'messageTemplateNamespace'] as const;
+
+export function readNamespace(template: TemplateRecord): string {
+	const record = template as unknown as Record<string, unknown>;
+	for (const key of NAMESPACE_KEYS) {
+		const value = record[key];
+		if (typeof value === 'string' && value.trim()) return value.trim();
+	}
+	return '';
+}
+
+/**
+ * Namespace is required by 1MSG sendTemplate. It is usually on the template.
+ * On some channels it is only present on other templates of the same account,
+ * and then only when every listed namespace is the same.
+ */
+export function resolveNamespace(template: TemplateRecord, siblings: TemplateRecord[] = []): string {
+	const own = readNamespace(template);
+	if (own) return own;
+	const found = new Set<string>();
+	for (const sibling of siblings) {
+		const namespace = readNamespace(sibling);
+		if (namespace) found.add(namespace);
+	}
+	if (found.size === 1) return [...found][0];
+	return '';
+}
+
+export function templateSendIdentity(
+	template: TemplateRecord,
+	siblings: TemplateRecord[] = [],
+): {
 	template: string;
 	namespace: string;
 	language: { policy: 'deterministic'; code: string };
@@ -387,10 +431,10 @@ export function templateSendIdentity(template: TemplateRecord): {
 	if (!code) {
 		throw new TemplateError(`Template “${name}” has no language. Refresh the list and choose it again.`);
 	}
-	const namespace = template.namespace?.trim();
+	const namespace = resolveNamespace(template, siblings);
 	if (!namespace) {
 		throw new TemplateError(
-			`Template “${name}” has no namespace. Open the template in 1MSG and check it before sending.`,
+			`Template “${name}” has no namespace, so 1MSG cannot send it yet. Refresh the list. If it still has no namespace, open the template in 1MSG and check the channel connection.`,
 		);
 	}
 	return {

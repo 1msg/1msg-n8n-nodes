@@ -50,7 +50,7 @@ A free-form message arrives only when that person wrote to the channel in the la
 **Using the form**:
 
 - **Recipient** — same field as Send Message.
-- **Template** — approved templates from the channel. Each row shows the name, language, and category. Open the list again to refresh it. Switch the field to **ID** to type a template name or ID.
+- **Template** — approved templates from the channel. Each row shows the name, language, and category. Use the refresh icon on the list to reload templates. Switch the field to **ID** to type a template name or ID.
 - **Variables** — appear after a template is chosen. They are labeled from the template, for example “Variable 1 in the text”, “Variable in the header”, and “Variable in the link button”. The template text is shown next to the field. A header image, video, or document asks for **File link**. A template with no variables shows no variable fields.
 
 **Custom request body** still uses Recipient and Template, and adds **Parameters**: the WhatsApp component array, for example a body variable. Name, language, and namespace come from the selected template.

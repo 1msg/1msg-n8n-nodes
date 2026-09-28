@@ -154,7 +154,7 @@ export class Waba implements INodeType {
 				default: { mode: 'list', value: '' },
 				required: true,
 				description:
-					'Approved templates on this channel. The list shows the name, language, and category. Reopen the list to refresh it, or switch to ID and type a name or ID.',
+					'Approved templates on this channel. Each row shows the name, language, and category. Use the refresh icon on the list to reload it, or switch to ID and type a name or ID.',
 				displayOptions: {
 					show: {
 						operation: ['sendTemplate'],
@@ -195,7 +195,7 @@ export class Waba implements INodeType {
 					},
 				},
 				typeOptions: {
-					loadOptionsDependsOn: ['template'],
+					loadOptionsDependsOn: ['template.value'],
 					resourceMapper: {
 						resourceMapperMethod: 'getTemplateVariables',
 						mode: 'add',

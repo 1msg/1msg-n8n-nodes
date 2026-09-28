@@ -3,10 +3,10 @@ const assert = require('node:assert/strict');
 const { recipientBody } = require('../dist/utils/recipient');
 const { resolveInstanceId } = require('../dist/utils/channel');
 const { channelRequestUrl } = require('../dist/utils/api-path');
-const { humanizeMessage, assertSendSucceeded } = require('../dist/utils/errors');
+const { humanizeMessage, assertSendSucceeded, messageFromFailure } = require('../dist/utils/errors');
 const { addWebhookUrl, removeWebhookUrl, webhookUrls } = require('../dist/utils/webhooks');
 const { selectEvents } = require('../dist/utils/events');
-const { templateFields, buildTemplateParams, findTemplate } = require('../dist/utils/templates');
+const { templateFields, buildTemplateParams, findTemplate, templateSendIdentity, isApproved } = require('../dist/utils/templates');
 
 function jwt(payload) {
 	const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
@@ -181,4 +181,46 @@ test('duplicate template names must be chosen from the list', () => {
 	assert.equal(findTemplate(templates, '1').language, 'en');
 	assert.throws(() => findTemplate(templates, 'hello'), /Several approved templates/);
 	assert.throws(() => findTemplate([{ ...templates[0], status: 'PENDING' }], 'missing'), /No approved/);
+});
+
+test('lowercase approved status and string components still build a template', () => {
+	assert.equal(isApproved({ status: 'approved', name: 'hello' }), true);
+	const components = JSON.stringify([{ type: 'BODY', text: 'Hi {{1}}' }]);
+	assert.deepEqual(
+		templateFields(components).map((field) => field.id),
+		['body_1'],
+	);
+	const sent = templateSendIdentity(
+		{ name: 'hello', language: 'en', status: 'approved', message_template_namespace: 'ns-1' },
+		[],
+	);
+	assert.equal(sent.namespace, 'ns-1');
+	assert.equal(
+		templateSendIdentity({ name: 'hello', language: 'en' }, [
+			{ name: 'other', language: 'en', namespace: 'shared-ns' },
+		]).namespace,
+		'shared-ns',
+	);
+	assert.throws(
+		() =>
+			templateSendIdentity({ name: 'hello', language: 'en' }, [
+				{ name: 'a', namespace: 'one' },
+				{ name: 'b', namespace: 'two' },
+			]),
+		/no namespace/,
+	);
+});
+
+test('API failures keep the readable 1MSG message', () => {
+	assert.match(
+		messageFromFailure({
+			statusCode: 400,
+			error: { message: 'Dialog window is closed' },
+		}),
+		/Send Template/,
+	);
+	assert.match(
+		messageFromFailure({ message: '400 - {"message":"template is not defined"}' }),
+		/name, language, or namespace/,
+	);
 });

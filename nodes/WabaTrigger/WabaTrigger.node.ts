@@ -66,7 +66,7 @@ export class WabaTrigger implements INodeType {
 		properties: [
 			{
 				displayName:
-					'Activating the workflow adds this trigger URL to the channel. Addresses that are already there stay in place. A channel can have up to 5. If delivery status is selected, delivery receipts are turned on for the channel.',
+					'Activating the workflow adds the production URL of this trigger to the channel. Addresses already configured stay in place. A channel can store 5 URLs. The URL is also shown below as Webhook URLs, with a copy button, if it has to be pasted into 1MSG by hand. Selecting delivery status turns delivery receipts on for the channel.',
 				name: 'webhookNotice',
 				type: 'notice',
 				default: '',
