@@ -1,6 +1,6 @@
 {
-	"name": "n8n-nodes-1msg",
-	"version": "0.1.1",
+	"name": "@1msg/n8n-nodes-1msg",
+	"version": "0.1.2",
 	"description": "n8n community node for the 1MSG WhatsApp Business API",
 	"license": "MIT",
 	"publishConfig": {

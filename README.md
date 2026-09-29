@@ -13,7 +13,7 @@ The node is enough for three setups:
 In n8n, go to **Settings → Community nodes** and install:
 
 ```text
-n8n-nodes-1msg
+@1msg/n8n-nodes-1msg
 ```
 
 On a self-hosted n8n you can also add the package to `N8N_CUSTOM_EXTENSIONS` or install it with npm inside the n8n container. Restart n8n after installing.
@@ -114,7 +114,7 @@ npm run dev
 
 `npm test` builds the package and runs the unit tests. `npm run dev` opens a local n8n with this node loaded.
 
-Source: [github.com/1msg/1msg-n8n-nodes](https://github.com/1msg/1msg-n8n-nodes). The npm package name stays `n8n-nodes-1msg` because n8n only loads community nodes whose package name starts with `n8n-nodes-`.
+Source: [github.com/1msg/1msg-n8n-nodes](https://github.com/1msg/1msg-n8n-nodes). The npm package is `@1msg/n8n-nodes-1msg`. n8n loads community nodes named `n8n-nodes-…` or `@scope/n8n-nodes-…`.
 
 Publishing to npm is done by GitHub Actions on a version tag, with a provenance attestation. See `.github/workflows/publish.yml`.
 
