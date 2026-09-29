@@ -1,8 +1,11 @@
 {
 	"name": "n8n-nodes-1msg",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "n8n community node for the 1MSG WhatsApp Business API",
 	"license": "MIT",
+	"publishConfig": {
+		"access": "public"
+	},
 	"homepage": "https://1msg.io",
 	"keywords": ["n8n-community-node-package"],
 	"author": {
