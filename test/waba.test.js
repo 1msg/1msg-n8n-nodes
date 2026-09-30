@@ -211,6 +211,24 @@ test('lowercase approved status and string components still build a template', (
 	);
 });
 
+test('recipient shows on the message form and on every template send', () => {
+	const { displayParameter } = require('n8n-workflow/dist/cjs/node-helpers.js');
+	const { Waba } = require('../dist/nodes/Waba/Waba.node.js');
+	const fields = new Waba().description.properties.filter((property) =>
+		['recipient', 'templateRecipient'].includes(property.name),
+	);
+	const shown = (name, values) =>
+		fields
+			.filter((field) => field.name === name)
+			.some((field) => displayParameter(values, field, null, null));
+	assert.equal(shown('recipient', { operation: 'sendMessage', fillMode: 'form' }), true);
+	assert.equal(shown('recipient', { operation: 'sendMessage', fillMode: 'custom' }), false);
+	assert.equal(shown('templateRecipient', { operation: 'sendTemplate', fillMode: 'form' }), true);
+	assert.equal(shown('templateRecipient', { operation: 'sendTemplate', fillMode: 'custom' }), true);
+	assert.equal(shown('recipient', { operation: 'sendTemplate', fillMode: 'form' }), false);
+	assert.equal(shown('recipient', { operation: 'apiCall' }), false);
+});
+
 test('API failures keep the readable 1MSG message', () => {
 	assert.match(
 		messageFromFailure({

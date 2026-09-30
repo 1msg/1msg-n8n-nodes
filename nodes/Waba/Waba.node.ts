@@ -108,11 +108,23 @@ export class Waba implements INodeType {
 					'Phone, BSUID, or username. Spaces, brackets, dashes, dots, and a leading plus are removed from phone numbers. You can also paste a chat ID from a webhook.',
 				displayOptions: {
 					show: {
-						operation: ['sendMessage', 'sendTemplate'],
-					},
-					hide: {
 						operation: ['sendMessage'],
-						fillMode: ['custom'],
+						fillMode: ['form'],
+					},
+				},
+			},
+			{
+				displayName: 'Recipient',
+				name: 'templateRecipient',
+				type: 'string',
+				default: '',
+				required: true,
+				placeholder: 'Phone, BSUID, or username',
+				description:
+					'Phone, BSUID, or username. Spaces, brackets, dashes, dots, and a leading plus are removed from phone numbers. You can also paste a chat ID from a webhook.',
+				displayOptions: {
+					show: {
+						operation: ['sendTemplate'],
 					},
 				},
 			},

@@ -89,7 +89,7 @@ async function sendTemplate(
 ): Promise<unknown> {
 	const selected = this.getNodeParameter('template', itemIndex) as { value?: string };
 	const template = findTemplate(templates, String(selected?.value || ''));
-	const recipient = recipientBody(this.getNodeParameter('recipient', itemIndex) as string);
+	const recipient = recipientBody(this.getNodeParameter('templateRecipient', itemIndex) as string);
 	const fillMode = this.getNodeParameter('fillMode', itemIndex) as string;
 	const params =
 		fillMode === 'custom'
