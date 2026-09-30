@@ -30,7 +30,7 @@ Create a credential named **1MSG API**.
 
 Use **Test** on the credential. A successful test reads the channel status. The same credential is used by **WABA** and **WABA Events**. The key stays in the n8n credential and is not typed again on each node. If you edit or replace the credential, existing nodes use the credential that is selected on them.
 
-API reference: [docs.1msg.io](https://docs.1msg.io/). Support: [help.1msg.io](https://help.1msg.io/) and support@1msg.io.
+API reference: [docs.1msg.io](https://docs.1msg.io/). Support: [help.1msg.io](https://help.1msg.io/) and hello@1msg.io.
 
 ## WABA
 
