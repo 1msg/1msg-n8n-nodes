@@ -1,5 +1,6 @@
 import type {
 	ICredentialDataDecryptedObject,
+	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestOptions,
 	INodeProperties,
@@ -68,10 +69,11 @@ export class OneMsgApi implements ICredentialType {
 		};
 	}
 
-	test = {
+	test: ICredentialTestRequest = {
 		request: {
-			method: 'GET' as const,
+			baseURL: '={{$credentials.baseUrl}}',
 			url: '/status',
+			method: 'GET',
 		},
 	};
 }
