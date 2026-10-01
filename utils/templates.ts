@@ -12,6 +12,7 @@ export interface TemplateField {
 	id: string;
 	displayName: string;
 	description: string;
+	required?: boolean;
 }
 
 export class TemplateError extends Error {
@@ -38,6 +39,7 @@ interface ComponentRecord {
 	components?: unknown[];
 	header?: { format?: string; type?: string; subType?: string };
 	body?: string;
+	limited_time_offer?: { has_expiration?: boolean; text?: string };
 }
 
 function asRecord(value: unknown): ComponentRecord | undefined {
@@ -125,6 +127,155 @@ function mediaNoun(format: string): string {
 	return 'image';
 }
 
+function indexedButtons(component: ComponentRecord): Array<{ button: ButtonRecord; index: number }> {
+	const buttons = Array.isArray(component.buttons) ? component.buttons : [];
+	return buttons.map((button, index) => ({ button, index }));
+}
+
+/** Meta stores carousel buttons inside a nested BUTTONS component, not on the card itself. */
+function cardButtons(card: ComponentRecord): Array<{ button: ButtonRecord; index: number }> {
+	const nested = cardComponents(card).find((item) => upper(item.type) === 'BUTTONS');
+	if (nested) return indexedButtons(nested);
+	return indexedButtons(card);
+}
+
+function linkButtonLabel(button: ButtonRecord, labelPrefix: string): string {
+	const quoted = button.text ? ` “${button.text}”` : '';
+	if (labelPrefix) return `${labelPrefix}, variable in the link button${quoted}`;
+	return `Variable in the link button${quoted}`;
+}
+
+function pushButtonFields(
+	fields: TemplateField[],
+	buttons: Array<{ button: ButtonRecord; index: number }>,
+	idPrefix: string,
+	labelPrefix: string,
+): void {
+	for (const { button, index } of buttons) {
+		const type = upper(button.type);
+		const lead = labelPrefix ? `${labelPrefix}, ` : '';
+		if (type === 'URL' && String(button.url || '').includes('{{')) {
+			fields.push({
+				id: `${idPrefix}button_url_${index}`,
+				displayName: linkButtonLabel(button, labelPrefix),
+				description: String(button.url || ''),
+			});
+		}
+		if (type === 'OTP' && !fields.some((field) => field.id === 'otp_code')) {
+			fields.push({
+				id: 'otp_code',
+				displayName: 'One-time code',
+				description: 'The code the recipient can copy. It is sent in the message and on the copy button.',
+			});
+		}
+		if (type === 'COPY_CODE') {
+			fields.push({
+				id: `${idPrefix}button_coupon_${index}`,
+				displayName: button.text ? `${lead}code for “${button.text}”` : `${lead}code to copy`,
+				description: 'The offer code the copy button puts on the clipboard.',
+			});
+		}
+		if (type === 'FLOW') {
+			fields.push({
+				id: `${idPrefix}button_flow_${index}`,
+				displayName: button.text ? `${lead}flow token for “${button.text}”` : `${lead}flow token`,
+				description: 'Leave empty to send “unused”. Fill this when the flow expects a token.',
+				required: false,
+			});
+		}
+	}
+}
+
+function expirationMs(raw: string): number {
+	const trimmed = raw.trim();
+	if (/^\d+$/.test(trimmed)) {
+		const value = Number(trimmed);
+		return trimmed.length <= 10 ? value * 1000 : value;
+	}
+	const parsed = Date.parse(trimmed);
+	if (Number.isNaN(parsed)) {
+		throw new TemplateError('Offer expiration must be a date or a unix time.');
+	}
+	return parsed;
+}
+
+function buttonValueId(prefix: string, button: ButtonRecord, index: number): string {
+	const type = upper(button.type);
+	if (type === 'COPY_CODE') return `${prefix}button_coupon_${index}`;
+	if (type === 'FLOW') return `${prefix}button_flow_${index}`;
+	if (type === 'SPM') return `${prefix}product_id`;
+	return `${prefix}button_url_${index}`;
+}
+
+function buttonParameter(
+	button: ButtonRecord,
+	index: number,
+	id: string,
+	values: Record<string, string>,
+	labels: Map<string, string>,
+): Record<string, unknown> | undefined {
+	const type = upper(button.type);
+	if (type === 'URL' && String(button.url || '').includes('{{')) {
+		return {
+			type: 'button',
+			sub_type: 'url',
+			index,
+			parameters: [
+				{
+					type: 'text',
+					text: requireValue(values, id, labels.get(id) || 'Variable in the link button'),
+				},
+			],
+		};
+	}
+	if (type === 'OTP') {
+		return {
+			type: 'button',
+			sub_type: 'url',
+			index,
+			parameters: [{ type: 'text', text: requireValue(values, 'otp_code', 'One-time code') }],
+		};
+	}
+	if (type === 'COPY_CODE') {
+		return {
+			type: 'button',
+			sub_type: 'copy_code',
+			index,
+			parameters: [
+				{
+					type: 'coupon_code',
+					coupon_code: requireValue(values, id, labels.get(id) || 'Code to copy'),
+				},
+			],
+		};
+	}
+	if (type === 'FLOW') {
+		const token = typeof values[id] === 'string' ? values[id].trim() : '';
+		return {
+			type: 'button',
+			sub_type: 'flow',
+			index,
+			parameters: [{ type: 'action', action: { flow_token: token || 'unused' } }],
+		};
+	}
+	if (type === 'SPM') {
+		return {
+			type: 'button',
+			sub_type: 'spm',
+			index,
+			parameters: [
+				{
+					type: 'action',
+					action: {
+						thumbnail_product_retailer_id: requireValue(values, id, labels.get(id) || 'Product ID'),
+					},
+				},
+			],
+		};
+	}
+	return undefined;
+}
+
 function pushTextFields(
 	fields: TemplateField[],
 	text: string,
@@ -166,18 +317,14 @@ export function templateFields(components: unknown): TemplateField[] {
 		if (type === 'BODY' && component.text) {
 			pushTextFields(fields, component.text, 'body_', 'text', '');
 		}
-		if (type === 'BUTTONS' && Array.isArray(component.buttons)) {
-			component.buttons.forEach((button, index) => {
-				if (upper(button?.type) === 'URL' && String(button?.url || '').includes('{{')) {
-					const label = button.text
-						? `Variable in the link button “${button.text}”`
-						: 'Variable in the link button';
-					fields.push({
-						id: `button_url_${index}`,
-						displayName: label,
-						description: String(button.url || ''),
-					});
-				}
+		if (type === 'BUTTONS') {
+			pushButtonFields(fields, indexedButtons(component), '', '');
+		}
+		if (type === 'LIMITED_TIME_OFFER' && component.limited_time_offer?.has_expiration) {
+			fields.push({
+				id: 'offer_expiration',
+				displayName: 'Offer expiration',
+				description: 'When the offer ends, for example 2026-10-02T18:00:00Z, or unix time in milliseconds.',
 			});
 		}
 		if (type === 'CAROUSEL') {
@@ -191,7 +338,20 @@ export function templateFields(components: unknown): TemplateField[] {
 				const header =
 					nested.find((item) => upper(item.type) === 'HEADER') || asRecord(card.header) || card;
 				const format = mediaFormat(header);
-				if (isMedia(format)) {
+				if (format === 'PRODUCT') {
+					if (!fields.some((field) => field.id === 'catalog_id')) {
+						fields.push({
+							id: 'catalog_id',
+							displayName: 'Catalog ID',
+							description: 'WhatsApp catalog that contains the products on these cards.',
+						});
+					}
+					fields.push({
+						id: `${prefix}product_id`,
+						displayName: `Card ${cardNumber} product ID`,
+						description: `Retailer product ID shown on card ${cardNumber}.`,
+					});
+				} else if (isMedia(format)) {
 					fields.push({
 						id: `${prefix}header_media_url`,
 						displayName: `Card ${cardNumber} file link`,
@@ -203,16 +363,7 @@ export function templateFields(components: unknown): TemplateField[] {
 				if (bodyText) {
 					pushTextFields(fields, bodyText, `${prefix}body_`, 'text', `Card ${cardNumber}`);
 				}
-				const buttons = Array.isArray(card.buttons) ? card.buttons : [];
-				buttons.forEach((button, buttonIndex) => {
-					if (upper(button?.type).includes('URL') && String(button?.url || '').includes('{{')) {
-						fields.push({
-							id: `${prefix}button_url_${buttonIndex}`,
-							displayName: `Card ${cardNumber}, variable in the link button`,
-							description: String(button.url),
-						});
-					}
-				});
+				pushButtonFields(fields, cardButtons(card), prefix, `Card ${cardNumber}`);
 			});
 		}
 	}
@@ -251,6 +402,7 @@ export function buildTemplateParams(components: unknown, values: Record<string, 
 	const labels = labelsById(components);
 	const params: unknown[] = [];
 	const list = componentList(components);
+	let sentBody = false;
 
 	for (const component of list) {
 		const type = upper(component.type);
@@ -272,24 +424,44 @@ export function buildTemplateParams(components: unknown, values: Record<string, 
 		if (type === 'BODY' && component.text) {
 			const tokens = placeholders(component.text);
 			if (tokens.length) {
+				sentBody = true;
 				params.push({
 					type: 'body',
 					parameters: textParameters(tokens, values, 'body_', labels),
 				});
 			}
 		}
-		if (type === 'BUTTONS' && Array.isArray(component.buttons)) {
-			component.buttons.forEach((button, index) => {
-				if (upper(button?.type) !== 'URL' || !String(button?.url || '').includes('{{')) return;
-				const id = `button_url_${index}`;
-				params.push({
-					type: 'button',
-					sub_type: 'url',
-					index,
-					parameters: [{ type: 'text', text: requireValue(values, id, labels.get(id) || 'Variable in the link button') }],
-				});
+		if (type === 'BUTTONS') {
+			for (const { button, index } of indexedButtons(component)) {
+				const built = buttonParameter(button, index, buttonValueId('', button, index), values, labels);
+				if (built) params.push(built);
+			}
+		}
+		if (type === 'LIMITED_TIME_OFFER' && component.limited_time_offer?.has_expiration) {
+			params.push({
+				type: 'limited_time_offer',
+				parameters: [
+					{
+						type: 'limited_time_offer',
+						limited_time_offer: {
+							expiration_time_ms: expirationMs(requireValue(values, 'offer_expiration', 'Offer expiration')),
+						},
+					},
+				],
 			});
 		}
+	}
+
+	const needsCode = list.some(
+		(component) =>
+			upper(component.type) === 'BUTTONS' &&
+			indexedButtons(component).some(({ button }) => upper(button.type) === 'OTP'),
+	);
+	if (needsCode && !sentBody) {
+		params.unshift({
+			type: 'body',
+			parameters: [{ type: 'text', text: requireValue(values, 'otp_code', 'One-time code') }],
+		});
 	}
 
 	const carousel = list.find((component) => upper(component.type) === 'CAROUSEL');
@@ -307,6 +479,21 @@ export function buildTemplateParams(components: unknown, values: Record<string, 
 				const link = requireValue(values, `${prefix}header_media_url`, `Card ${cardNumber} file link`);
 				cardParams.push({ type: 'header', parameters: [mediaParameter(format, link)] });
 			}
+			if (format === 'PRODUCT') {
+				const productId = requireValue(values, `${prefix}product_id`, `Card ${cardNumber} product ID`);
+				cardParams.push({
+					type: 'header',
+					parameters: [
+						{
+							type: 'product',
+							product: {
+								product_retailer_id: productId,
+								catalog_id: requireValue(values, 'catalog_id', 'Catalog ID'),
+							},
+						},
+					],
+				});
+			}
 			const bodyComponent = nested.find((item) => upper(item.type) === 'BODY');
 			const bodyText = bodyComponent?.text || (typeof card.body === 'string' ? card.body : '');
 			const tokens = placeholders(bodyText);
@@ -316,22 +503,10 @@ export function buildTemplateParams(components: unknown, values: Record<string, 
 					parameters: textParameters(tokens, values, `${prefix}body_`, labels),
 				});
 			}
-			const buttons = Array.isArray(card.buttons) ? card.buttons : [];
-			buttons.forEach((button, buttonIndex) => {
-				if (!upper(button?.type).includes('URL') || !String(button?.url || '').includes('{{')) return;
-				const id = `${prefix}button_url_${buttonIndex}`;
-				cardParams.push({
-					type: 'button',
-					sub_type: 'url',
-					index: buttonIndex,
-					parameters: [
-						{
-							type: 'text',
-							text: requireValue(values, id, labels.get(id) || `Card ${cardNumber}, variable in the link button`),
-						},
-					],
-				});
-			});
+			for (const { button, index } of cardButtons(card)) {
+				const built = buttonParameter(button, index, buttonValueId(prefix, button, index), values, labels);
+				if (built) cardParams.push(built);
+			}
 			return { card_index: cardIndex, components: cardParams };
 		});
 		if (built.length) params.push({ type: 'carousel', cards: built });

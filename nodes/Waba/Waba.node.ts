@@ -13,15 +13,16 @@ const sendOperations = ['sendMessage', 'sendTemplate'];
 
 export class Waba implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'WABA',
+		displayName: '1MSG for WhatsApp Business API',
 		name: 'waba',
 		icon: { light: 'file:1msg.svg', dark: 'file:1msg.dark.svg' },
 		group: ['output'],
 		version: 1,
 		subtitle: '={{$parameter["operation"]}}',
-		description: 'Send WhatsApp messages through 1MSG',
+		description:
+			'Send WhatsApp messages, receive webhooks, and make any API request using the official WhatsApp API through 1MSG.',
 		defaults: {
-			name: 'WABA',
+			name: '1MSG for WhatsApp Business API',
 		},
 		inputs: [NodeConnectionTypes.Main],
 		outputs: [NodeConnectionTypes.Main],
@@ -59,6 +60,18 @@ export class Waba implements INodeType {
 						description: 'Call any 1MSG API method with the saved credential',
 					},
 				],
+			},
+			{
+				displayName:
+					'Docs <a href="https://docs.1msg.io/" target="_blank">https://docs.1msg.io/</a>',
+				name: 'docsNotice',
+				type: 'notice',
+				default: '',
+				displayOptions: {
+					show: {
+						operation: ['sendMessage', 'apiCall'],
+					},
+				},
 			},
 			{
 				displayName: 'How to Fill',

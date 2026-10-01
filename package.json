@@ -1,13 +1,13 @@
 {
 	"name": "@1msg/n8n-nodes-1msg",
-	"version": "0.1.6",
-	"description": "n8n community node for the 1MSG WhatsApp Business API",
+	"version": "0.1.7",
+	"description": "Send WhatsApp messages, receive webhooks, and make any API request using the official WhatsApp API through 1MSG.",
 	"license": "MIT",
 	"publishConfig": {
 		"access": "public"
 	},
 	"homepage": "https://1msg.io",
-	"keywords": ["n8n-community-node-package"],
+	"keywords": ["n8n-community-node-package", "waba", "whatsapp", "whatsapp-business-api", "1msg"],
 	"author": {
 		"name": "1MSG",
 		"email": "1msg.company@gmail.com"

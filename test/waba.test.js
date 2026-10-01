@@ -173,6 +173,167 @@ test('template form follows the inbox variable layout', () => {
 	assert.throws(() => buildTemplateParams(components, { body_1: 'Ada' }), /File link/);
 });
 
+test('carousel cards read buttons nested inside the card', () => {
+	const components = [
+		{ type: 'BODY', text: 'Pick one' },
+		{
+			type: 'CAROUSEL',
+			cards: [
+				{
+					components: [
+						{ type: 'HEADER', format: 'IMAGE' },
+						{ type: 'BODY', text: 'Lemons for {{1}}' },
+						{
+							type: 'BUTTONS',
+							buttons: [
+								{ type: 'QUICK_REPLY', text: 'More' },
+								{ type: 'URL', text: 'Buy', url: 'https://shop.example/{{1}}' },
+							],
+						},
+					],
+				},
+			],
+		},
+	];
+	assert.deepEqual(
+		templateFields(components).map((field) => field.id),
+		['card_1_header_media_url', 'card_1_body_1', 'card_1_button_url_1'],
+	);
+	assert.deepEqual(
+		buildTemplateParams(components, {
+			card_1_header_media_url: 'https://cdn.example/a.jpg',
+			card_1_body_1: 'summer',
+			card_1_button_url_1: 'summer',
+		}),
+		[
+			{
+				type: 'carousel',
+				cards: [
+					{
+						card_index: 0,
+						components: [
+							{
+								type: 'header',
+								parameters: [{ type: 'image', image: { link: 'https://cdn.example/a.jpg' } }],
+							},
+							{ type: 'body', parameters: [{ type: 'text', text: 'summer' }] },
+							{
+								type: 'button',
+								sub_type: 'url',
+								index: 1,
+								parameters: [{ type: 'text', text: 'summer' }],
+							},
+						],
+					},
+				],
+			},
+		],
+	);
+});
+
+test('authentication, copy-code, and flow templates send the button parameters Meta requires', () => {
+	const auth = [
+		{ type: 'BODY', add_security_recommendation: true },
+		{ type: 'BUTTONS', buttons: [{ type: 'OTP', otp_type: 'COPY_CODE', text: 'Copy code' }] },
+	];
+	assert.deepEqual(templateFields(auth).map((field) => field.id), ['otp_code']);
+	assert.deepEqual(buildTemplateParams(auth, { otp_code: '123456' }), [
+		{ type: 'body', parameters: [{ type: 'text', text: '123456' }] },
+		{ type: 'button', sub_type: 'url', index: 0, parameters: [{ type: 'text', text: '123456' }] },
+	]);
+
+	const offer = [
+		{ type: 'BODY', text: 'Hi {{1}}' },
+		{ type: 'LIMITED_TIME_OFFER', limited_time_offer: { has_expiration: true, text: 'Ends soon' } },
+		{
+			type: 'BUTTONS',
+			buttons: [
+				{ type: 'COPY_CODE', text: 'Copy offer code' },
+				{ type: 'URL', text: 'Book', url: 'https://shop.example/{{1}}' },
+			],
+		},
+	];
+	assert.deepEqual(
+		templateFields(offer).map((field) => field.id),
+		['body_1', 'offer_expiration', 'button_coupon_0', 'button_url_1'],
+	);
+	const sent = buildTemplateParams(offer, {
+		body_1: 'Ada',
+		offer_expiration: '2026-10-02T18:00:00Z',
+		button_coupon_0: 'CARIBBEAN',
+		button_url_1: 'CARIBBEAN',
+	});
+	assert.equal(sent[1].type, 'limited_time_offer');
+	assert.equal(sent[1].parameters[0].limited_time_offer.expiration_time_ms, Date.parse('2026-10-02T18:00:00Z'));
+	assert.deepEqual(sent[2], {
+		type: 'button',
+		sub_type: 'copy_code',
+		index: 0,
+		parameters: [{ type: 'coupon_code', coupon_code: 'CARIBBEAN' }],
+	});
+
+	const flow = [{ type: 'BUTTONS', buttons: [{ type: 'FLOW', text: 'Get access' }] }];
+	assert.equal(templateFields(flow)[0].required, false);
+	assert.deepEqual(buildTemplateParams(flow, {}), [
+		{
+			type: 'button',
+			sub_type: 'flow',
+			index: 0,
+			parameters: [{ type: 'action', action: { flow_token: 'unused' } }],
+		},
+	]);
+
+	const products = [
+		{
+			type: 'CAROUSEL',
+			cards: [
+				{
+					components: [
+						{ type: 'HEADER', format: 'PRODUCT' },
+						{ type: 'BUTTONS', buttons: [{ type: 'SPM', text: 'View' }] },
+					],
+				},
+			],
+		},
+	];
+	assert.deepEqual(
+		templateFields(products).map((field) => field.id),
+		['catalog_id', 'card_1_product_id'],
+	);
+	assert.deepEqual(
+		buildTemplateParams(products, { catalog_id: 'cat-1', card_1_product_id: 'sku-1' }),
+		[
+			{
+				type: 'carousel',
+				cards: [
+					{
+						card_index: 0,
+						components: [
+							{
+								type: 'header',
+								parameters: [
+									{
+										type: 'product',
+										product: { product_retailer_id: 'sku-1', catalog_id: 'cat-1' },
+									},
+								],
+							},
+							{
+								type: 'button',
+								sub_type: 'spm',
+								index: 0,
+								parameters: [
+									{ type: 'action', action: { thumbnail_product_retailer_id: 'sku-1' } },
+								],
+							},
+						],
+					},
+				],
+			},
+		],
+	);
+});
+
 test('duplicate template names must be chosen from the list', () => {
 	const templates = [
 		{ id: '1', name: 'hello', language: 'en', status: 'APPROVED', namespace: 'ns' },

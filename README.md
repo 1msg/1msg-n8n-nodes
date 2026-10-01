@@ -28,11 +28,11 @@ Create a credential named **1MSG API**.
 | Base URL | `https://api.1msg.io`, unless 1MSG gave you another host. |
 | Channel ID | Leave empty. Fill it only for an older key that is not tied to one channel. |
 
-Use **Test** on the credential. A successful test reads the channel status. The same credential is used by **WABA** and **WABA Events**. The key stays in the n8n credential and is not typed again on each node. If you edit or replace the credential, existing nodes use the credential that is selected on them.
+Use **Test** on the credential. A successful test reads the channel status. The same credential is used by **1MSG for WhatsApp Business API** and its trigger. The key stays in the n8n credential and is not typed again on each node. If you edit or replace the credential, existing nodes use the credential that is selected on them.
 
 API reference: [docs.1msg.io](https://docs.1msg.io/). Support: [help.1msg.io](https://help.1msg.io/) and 1msg.company@gmail.com.
 
-## WABA
+## 1MSG for WhatsApp Business API
 
 ### Send Message
 
@@ -65,9 +65,9 @@ Call any method on the same channel without typing the key again.
 
 The API response is returned as the n8n item. An HTTP error is shown in plain language.
 
-## WABA Events
+## 1MSG for WhatsApp Business API Trigger
 
-The trigger starts the workflow when 1MSG sends a webhook. In n8n it is named **WABA Events Trigger**. Choose any combination of:
+The trigger starts the workflow when 1MSG sends a webhook. In n8n it is named **1MSG for WhatsApp Business API Trigger**. Choose any combination of:
 
 - Incoming message webhooks
 - Outgoing message webhooks
@@ -91,18 +91,18 @@ A request that does not match the selected events is acknowledged and does not s
 
 Reply to a new customer message with a template when the 24-hour window may be closed:
 
-1. **WABA Events**, with incoming messages selected.
-2. **WABA → Send Template**. Set Recipient to `{{$json.chatId}}` and choose the template.
+1. **1MSG for WhatsApp Business API Trigger**, with incoming messages selected.
+2. **1MSG for WhatsApp Business API → Send Template**. Set Recipient to `{{$json.chatId}}` and choose the template.
 
 Forward an incoming message to another system:
 
-1. **WABA Events**.
+1. **1MSG for WhatsApp Business API Trigger**.
 2. An HTTP Request node that posts `{{$json.message}}` to the CRM.
 
 Send a template when a CRM row is created:
 
 1. The CRM trigger.
-2. **WABA → Send Template**. Map the phone and the template variables from the CRM item.
+2. **1MSG for WhatsApp Business API → Send Template**. Map the phone and the template variables from the CRM item.
 
 ## Development
 

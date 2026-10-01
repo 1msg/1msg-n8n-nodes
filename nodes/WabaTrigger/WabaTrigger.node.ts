@@ -37,15 +37,16 @@ async function enableDeliveryStatuses(this: IHookFunctions): Promise<void> {
 
 export class WabaTrigger implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'WABA Events Trigger',
+		displayName: '1MSG for WhatsApp Business API Trigger',
 		name: 'wabaTrigger',
 		icon: { light: 'file:1msg.svg', dark: 'file:1msg.dark.svg' },
 		group: ['trigger'],
 		version: 1,
 		subtitle: 'WhatsApp events',
-		description: 'Start a workflow from 1MSG WhatsApp events',
+		description:
+			'Receive WhatsApp messages and delivery statuses through 1MSG.',
 		defaults: {
-			name: 'WABA Events Trigger',
+			name: '1MSG for WhatsApp Business API Trigger',
 		},
 		inputs: [],
 		outputs: [NodeConnectionTypes.Main],

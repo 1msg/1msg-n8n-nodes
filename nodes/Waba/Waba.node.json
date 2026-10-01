@@ -3,15 +3,16 @@
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
 	"categories": ["Communication"],
+	"alias": ["WABA", "WhatsApp", "WhatsApp Business", "WhatsApp Business API", "1MSG"],
 	"resources": {
 		"credentialDocumentation": [
 			{
-				"url": "https://github.com/1msg/1msg-n8n-nodes#credentials"
+				"url": "https://docs.1msg.io/"
 			}
 		],
 		"primaryDocumentation": [
 			{
-				"url": "https://github.com/1msg/1msg-n8n-nodes#readme"
+				"url": "https://docs.1msg.io/"
 			}
 		]
 	}

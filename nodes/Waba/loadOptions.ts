@@ -69,7 +69,7 @@ export async function getTemplateVariables(this: ILoadOptionsFunctions): Promise
 			id: field.id,
 			displayName: field.displayName,
 			description: field.description,
-			required: true,
+			required: field.required !== false,
 			defaultMatch: false,
 			display: true,
 			type: 'string' as const,
