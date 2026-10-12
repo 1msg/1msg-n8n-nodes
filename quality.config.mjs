@@ -14,7 +14,7 @@ export default {
 		'eslint.complexity.config.mjs',
 		'.dependency-cruiser.cjs',
 		'quality.config.mjs',
-		'eslint.framework.config.mjs',
+		'eslint.static.config.mjs',
 		'.prettierrc.js',
 	],
 	generated: [],
