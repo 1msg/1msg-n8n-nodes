@@ -1,7 +1,5 @@
 import type { IDataObject, IExecuteFunctions, IHttpRequestMethods } from 'n8n-workflow';
 
-import { listApprovedTemplates } from './listTemplates';
-import { oneMsgRequest } from '../transport';
 import { channelRequestUrl } from '../../utils/api-path';
 import { normalizeBaseUrl, resolveInstanceId, stripAuthPrefix } from '../../utils/channel';
 import { assertSendSucceeded } from '../../utils/errors';
@@ -12,6 +10,8 @@ import {
 	templateSendIdentity,
 	type TemplateRecord,
 } from '../../utils/templates';
+import { oneMsgRequest } from '../transport';
+import { listApprovedTemplates } from './listTemplates';
 
 function jsonValue(value: unknown, label: string): unknown {
 	if (typeof value !== 'string') return value;
@@ -38,10 +38,11 @@ function jsonObject(value: unknown, label: string): IDataObject {
 	return parsed as IDataObject;
 }
 
+/** Parse a configured JSON list and reject non-arrays before constructing an n8n API payload. */
 function jsonArray(value: unknown, label: string): unknown[] {
 	const parsed = jsonValue(value, label);
 	if (!Array.isArray(parsed)) {
-		throw new Error(`${label} must be a JSON array of template components.`);
+		throw new TypeError(`${label} must be a JSON array of template components.`);
 	}
 	return parsed;
 }
@@ -141,7 +142,10 @@ async function apiCall(this: IExecuteFunctions, itemIndex: number): Promise<unkn
 	);
 }
 
-export function bindWabaExecute(): (this: IExecuteFunctions, itemIndex: number) => Promise<unknown> {
+export function bindWabaExecute(): (
+	this: IExecuteFunctions,
+	itemIndex: number,
+) => Promise<unknown> {
 	let approved: TemplateRecord[] | undefined;
 	return async function executeOne(this: IExecuteFunctions, itemIndex: number): Promise<unknown> {
 		const operation = this.getNodeParameter('operation', itemIndex) as string;

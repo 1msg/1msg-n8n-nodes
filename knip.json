@@ -1,0 +1,19 @@
+{
+	"entry": [
+		"nodes/Waba/Waba.node.ts!",
+		"nodes/WabaTrigger/WabaTrigger.node.ts!",
+		"credentials/OneMsgApi.credentials.ts!",
+		"scripts/*.{js,mjs,cjs}",
+		"eslint*.mjs",
+		"quality.config.mjs",
+		"test/**/*.test.js"
+	],
+	"project": [
+		"nodes/**/*.ts!",
+		"utils/**/*.ts!",
+		"credentials/**/*.ts!",
+		"test/**/*.js",
+		"scripts/*.{js,mjs,cjs}"
+	],
+	"ignore": ["tools/quality/**"]
+}

@@ -1,0 +1,216 @@
+{
+	"schemaVersion": 1,
+	"adoptionBase": "bc99af8e49f35a4fc5d12ca71d8f8f0bd214f671",
+	"entries": [
+		{
+			"key": "package.json|devDependencies|release-it",
+			"value": 1,
+			"path": "package.json",
+			"rule": "devDependencies",
+			"symbol": "release-it",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"package.json": "dependency:release-it:20.2.0"
+			}
+		},
+		{
+			"key": "utils/api-path.ts|exports|ApiPathError",
+			"value": 1,
+			"path": "utils/api-path.ts",
+			"rule": "exports",
+			"symbol": "ApiPathError",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/api-path.ts": "089c3105b07c27e0271199c4d7c56750ca056dd3ad81bebe854b6010e12f0cdd"
+			}
+		},
+		{
+			"key": "utils/channel.ts|exports|ChannelKeyError",
+			"value": 1,
+			"path": "utils/channel.ts",
+			"rule": "exports",
+			"symbol": "ChannelKeyError",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/channel.ts": "59cb01b7c4d45740a4626431f2c2a981f229aa6d7e400a35e85432ca289d121d"
+			}
+		},
+		{
+			"key": "utils/channel.ts|exports|decodeJwtPayload",
+			"value": 1,
+			"path": "utils/channel.ts",
+			"rule": "exports",
+			"symbol": "decodeJwtPayload",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/channel.ts": "59cb01b7c4d45740a4626431f2c2a981f229aa6d7e400a35e85432ca289d121d"
+			}
+		},
+		{
+			"key": "utils/channel.ts|exports|normalizeInstanceId",
+			"value": 1,
+			"path": "utils/channel.ts",
+			"rule": "exports",
+			"symbol": "normalizeInstanceId",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/channel.ts": "59cb01b7c4d45740a4626431f2c2a981f229aa6d7e400a35e85432ca289d121d"
+			}
+		},
+		{
+			"key": "utils/events.ts|exports|extractEvents",
+			"value": 1,
+			"path": "utils/events.ts",
+			"rule": "exports",
+			"symbol": "extractEvents",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/events.ts": "00849644196a5e435c2060593935d887c48e2218cabbb9fa008dbd6bd350d000"
+			}
+		},
+		{
+			"key": "utils/events.ts|types|WabaEventKind",
+			"value": 1,
+			"path": "utils/events.ts",
+			"rule": "types",
+			"symbol": "WabaEventKind",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/events.ts": "00849644196a5e435c2060593935d887c48e2218cabbb9fa008dbd6bd350d000"
+			}
+		},
+		{
+			"key": "utils/recipient.ts|exports|RecipientError",
+			"value": 1,
+			"path": "utils/recipient.ts",
+			"rule": "exports",
+			"symbol": "RecipientError",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/recipient.ts": "b7c2a736a161562fe1d64231c4ec84f92a5cc8a29ff3bb1e6da40855b49cb15e"
+			}
+		},
+		{
+			"key": "utils/templates.ts|exports|normalizeComponents",
+			"value": 1,
+			"path": "utils/templates.ts",
+			"rule": "exports",
+			"symbol": "normalizeComponents",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/templates.ts": "64b68bcd0513936e18479e140e1cc99d98c439d1a6ed56950aeb70e8048a46d5"
+			}
+		},
+		{
+			"key": "utils/templates.ts|exports|readNamespace",
+			"value": 1,
+			"path": "utils/templates.ts",
+			"rule": "exports",
+			"symbol": "readNamespace",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/templates.ts": "64b68bcd0513936e18479e140e1cc99d98c439d1a6ed56950aeb70e8048a46d5"
+			}
+		},
+		{
+			"key": "utils/templates.ts|exports|resolveNamespace",
+			"value": 1,
+			"path": "utils/templates.ts",
+			"rule": "exports",
+			"symbol": "resolveNamespace",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/templates.ts": "64b68bcd0513936e18479e140e1cc99d98c439d1a6ed56950aeb70e8048a46d5"
+			}
+		},
+		{
+			"key": "utils/templates.ts|exports|TemplateError",
+			"value": 1,
+			"path": "utils/templates.ts",
+			"rule": "exports",
+			"symbol": "TemplateError",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/templates.ts": "64b68bcd0513936e18479e140e1cc99d98c439d1a6ed56950aeb70e8048a46d5"
+			}
+		},
+		{
+			"key": "utils/webhooks.ts|exports|normalizeWebhookUrl",
+			"value": 1,
+			"path": "utils/webhooks.ts",
+			"rule": "exports",
+			"symbol": "normalizeWebhookUrl",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/webhooks.ts": "b8c06512689990c903bb381885a4fcc495fa19ec6ddb5be4e6c502d43a8f169e"
+			}
+		},
+		{
+			"key": "utils/webhooks.ts|exports|WebhookListError",
+			"value": 1,
+			"path": "utils/webhooks.ts",
+			"rule": "exports",
+			"symbol": "WebhookListError",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/webhooks.ts": "b8c06512689990c903bb381885a4fcc495fa19ec6ddb5be4e6c502d43a8f169e"
+			}
+		},
+		{
+			"key": "utils/webhooks.ts|exports|webhookWriteBody",
+			"value": 1,
+			"path": "utils/webhooks.ts",
+			"rule": "exports",
+			"symbol": "webhookWriteBody",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/webhooks.ts": "b8c06512689990c903bb381885a4fcc495fa19ec6ddb5be4e6c502d43a8f169e"
+			}
+		}
+	]
+}

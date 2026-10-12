@@ -9,10 +9,11 @@ export function stripAuthPrefix(raw: string): string {
 	return raw.replace(/^(Bearer|Basic)\s+/i, '').trim();
 }
 
+/** Decode the JWT payload locally to infer channel metadata; malformed or non-object payloads return null without authentication claims. */
 export function decodeJwtPayload(token: string): Record<string, unknown> | null {
 	const stripped = stripAuthPrefix(token);
 	const parts = stripped.split('.');
-	if (parts.length !== 3) return null;
+	if (parts.length !== 3 || parts[1] === undefined) return null;
 	try {
 		const padded = parts[1].replace(/-/g, '+').replace(/_/g, '/');
 		const json = Buffer.from(padded, 'base64').toString('utf8');
@@ -52,7 +53,9 @@ export function resolveInstanceId(apiKey: string, channelId?: string): string {
 export function normalizeBaseUrl(baseUrl: string): string {
 	const value = (baseUrl || 'https://api.1msg.io').trim().replace(/\/$/, '');
 	if (!/^https?:\/\//i.test(value)) {
-		throw new ChannelKeyError('Base URL must start with https://. The usual value is https://api.1msg.io.');
+		throw new ChannelKeyError(
+			'Base URL must start with https://. The usual value is https://api.1msg.io.',
+		);
 	}
 	return value;
 }

@@ -1,7 +1,7 @@
 import type { IExecuteFunctions, ILoadOptionsFunctions } from 'n8n-workflow';
+
 import { NodeOperationError } from 'n8n-workflow';
 
-import { oneMsgRequest } from '../transport';
 import { extractMessage, humanizeMessage } from '../../utils/errors';
 import {
 	isApproved,
@@ -9,6 +9,7 @@ import {
 	templatesFromResponse,
 	type TemplateRecord,
 } from '../../utils/templates';
+import { oneMsgRequest } from '../transport';
 
 type TemplateContext = IExecuteFunctions | ILoadOptionsFunctions;
 

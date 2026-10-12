@@ -1,12 +1,23 @@
-const test = require('node:test');
 const assert = require('node:assert/strict');
-const { recipientBody } = require('../dist/utils/recipient');
-const { resolveInstanceId } = require('../dist/utils/channel');
+const test = require('node:test');
+
 const { channelRequestUrl } = require('../dist/utils/api-path');
-const { humanizeMessage, assertSendSucceeded, messageFromFailure } = require('../dist/utils/errors');
-const { addWebhookUrl, removeWebhookUrl, webhookUrls } = require('../dist/utils/webhooks');
+const { resolveInstanceId } = require('../dist/utils/channel');
+const {
+	humanizeMessage,
+	assertSendSucceeded,
+	messageFromFailure,
+} = require('../dist/utils/errors');
 const { selectEvents } = require('../dist/utils/events');
-const { templateFields, buildTemplateParams, findTemplate, templateSendIdentity, isApproved } = require('../dist/utils/templates');
+const { recipientBody } = require('../dist/utils/recipient');
+const {
+	templateFields,
+	buildTemplateParams,
+	findTemplate,
+	templateSendIdentity,
+	isApproved,
+} = require('../dist/utils/templates');
+const { addWebhookUrl, removeWebhookUrl, webhookUrls } = require('../dist/utils/webhooks');
 
 function jwt(payload) {
 	const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
@@ -142,7 +153,12 @@ test('template form follows the inbox variable layout', () => {
 	const fields = templateFields(components);
 	assert.deepEqual(
 		fields.map((field) => field.displayName),
-		['File link', 'Variable 1 in the text', 'Variable 2 in the text', 'Variable in the link button “Track”'],
+		[
+			'File link',
+			'Variable 1 in the text',
+			'Variable 2 in the text',
+			'Variable in the link button “Track”',
+		],
 	);
 	assert.equal(fields[1].description, 'Hello {{1}}, order {{2}}');
 	assert.deepEqual(
@@ -153,7 +169,10 @@ test('template form follows the inbox variable layout', () => {
 			button_url_1: '100',
 		}),
 		[
-			{ type: 'header', parameters: [{ type: 'image', image: { link: 'https://cdn.example/a.jpg' } }] },
+			{
+				type: 'header',
+				parameters: [{ type: 'image', image: { link: 'https://cdn.example/a.jpg' } }],
+			},
 			{
 				type: 'body',
 				parameters: [
@@ -236,7 +255,10 @@ test('authentication, copy-code, and flow templates send the button parameters M
 		{ type: 'BODY', add_security_recommendation: true },
 		{ type: 'BUTTONS', buttons: [{ type: 'OTP', otp_type: 'COPY_CODE', text: 'Copy code' }] },
 	];
-	assert.deepEqual(templateFields(auth).map((field) => field.id), ['otp_code']);
+	assert.deepEqual(
+		templateFields(auth).map((field) => field.id),
+		['otp_code'],
+	);
 	assert.deepEqual(buildTemplateParams(auth, { otp_code: '123456' }), [
 		{ type: 'body', parameters: [{ type: 'text', text: '123456' }] },
 		{ type: 'button', sub_type: 'url', index: 0, parameters: [{ type: 'text', text: '123456' }] },
@@ -264,7 +286,10 @@ test('authentication, copy-code, and flow templates send the button parameters M
 		button_url_1: 'CARIBBEAN',
 	});
 	assert.equal(sent[1].type, 'limited_time_offer');
-	assert.equal(sent[1].parameters[0].limited_time_offer.expiration_time_ms, Date.parse('2026-10-02T18:00:00Z'));
+	assert.equal(
+		sent[1].parameters[0].limited_time_offer.expiration_time_ms,
+		Date.parse('2026-10-02T18:00:00Z'),
+	);
 	assert.deepEqual(sent[2], {
 		type: 'button',
 		sub_type: 'copy_code',
@@ -341,7 +366,10 @@ test('duplicate template names must be chosen from the list', () => {
 	];
 	assert.equal(findTemplate(templates, '1').language, 'en');
 	assert.throws(() => findTemplate(templates, 'hello'), /Several approved templates/);
-	assert.throws(() => findTemplate([{ ...templates[0], status: 'PENDING' }], 'missing'), /No approved/);
+	assert.throws(
+		() => findTemplate([{ ...templates[0], status: 'PENDING' }], 'missing'),
+		/No approved/,
+	);
 });
 
 test('lowercase approved status and string components still build a template', () => {
@@ -372,8 +400,10 @@ test('lowercase approved status and string components still build a template', (
 	);
 });
 
+/** Evaluate actual n8n display predicates to ensure recipient fields appear on every supported message form. */
 test('recipient shows on the message form and on every template send', () => {
 	const { displayParameter } = require('n8n-workflow/dist/cjs/node-helpers.js');
+
 	const { Waba } = require('../dist/nodes/Waba/Waba.node.js');
 	const fields = new Waba().description.properties.filter((property) =>
 		['recipient', 'templateRecipient'].includes(property.name),

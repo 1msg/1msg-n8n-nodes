@@ -1,0 +1,19 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"noEmit": true,
+		"noUncheckedIndexedAccess": true,
+		"exactOptionalPropertyTypes": true,
+		"noEmitOnError": true,
+		"rootDir": "."
+	},
+	"include": [
+		"src/**/*.ts",
+		"tests/**/*.ts",
+		"vitest.config.ts",
+		"nodes/**/*.ts",
+		"utils/**/*.ts",
+		"credentials/**/*.ts"
+	],
+	"exclude": ["node_modules", "dist"]
+}

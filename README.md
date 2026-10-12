@@ -22,11 +22,11 @@ On a self-hosted n8n you can also add the package to `N8N_CUSTOM_EXTENSIONS` or 
 
 Create a credential named **1MSG API**.
 
-| Field | What to paste |
-| --- | --- |
-| API Key | The channel API key from 1MSG channel settings. The channel is read from this key. |
-| Base URL | `https://api.1msg.io`, unless 1MSG gave you another host. |
-| Channel ID | Leave empty. Fill it only for an older key that is not tied to one channel. |
+| Field      | What to paste                                                                      |
+| ---------- | ---------------------------------------------------------------------------------- |
+| API Key    | The channel API key from 1MSG channel settings. The channel is read from this key. |
+| Base URL   | `https://api.1msg.io`, unless 1MSG gave you another host.                          |
+| Channel ID | Leave empty. Fill it only for an older key that is not tied to one channel.        |
 
 Use **Test** on the credential. A successful test reads the channel status. The same credential is used by **1MSG for WhatsApp Business API** and its trigger. The key stays in the n8n credential and is not typed again on each node. If you edit or replace the credential, existing nodes use the credential that is selected on them.
 
@@ -79,11 +79,11 @@ If delivery status is selected, the node turns on `ackNotificationsOn` for the c
 
 Each matching event becomes one item:
 
-| `event` | When |
-| --- | --- |
+| `event`    | When                                 |
+| ---------- | ------------------------------------ |
 | `incoming` | Customer message (`fromMe` is false) |
-| `outgoing` | Business message (`fromMe` is true) |
-| `status` | Delivery receipt in `ack` |
+| `outgoing` | Business message (`fromMe` is true)  |
+| `status`   | Delivery receipt in `ack`            |
 
 A request that does not match the selected events is acknowledged and does not start the workflow.
 
