@@ -3,11 +3,11 @@
 	"adoptionBase": "bc99af8e49f35a4fc5d12ca71d8f8f0bd214f671",
 	"entries": [
 		{
-			"key": "nodes/Waba/listTemplates.ts|sonarjs/cognitive-complexity|listApprovedTemplates|0",
+			"key": "nodes/Waba/listTemplates.ts|sonarjs/cognitive-complexity|[[\"FunctionDeclaration\",\"listApprovedTemplates\",\"instance\"]]",
 			"value": 22,
 			"path": "nodes/Waba/listTemplates.ts",
 			"rule": "sonarjs/cognitive-complexity",
-			"scope": "listApprovedTemplates",
+			"scope": "[[\"FunctionDeclaration\",\"listApprovedTemplates\",\"instance\"]]",
 			"owner": "1MSG SDK/tooling maintainers",
 			"expires": "2026-12-11",
 			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
@@ -17,11 +17,11 @@
 			}
 		},
 		{
-			"key": "utils/api-path.ts|sonarjs/cognitive-complexity|channelRequestUrl|0",
+			"key": "utils/api-path.ts|sonarjs/cognitive-complexity|[[\"FunctionDeclaration\",\"channelRequestUrl\",\"instance\"]]",
 			"value": 19,
 			"path": "utils/api-path.ts",
 			"rule": "sonarjs/cognitive-complexity",
-			"scope": "channelRequestUrl",
+			"scope": "[[\"FunctionDeclaration\",\"channelRequestUrl\",\"instance\"]]",
 			"owner": "1MSG SDK/tooling maintainers",
 			"expires": "2026-12-11",
 			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
@@ -31,11 +31,11 @@
 			}
 		},
 		{
-			"key": "utils/errors.ts|complexity|humanizeMessage|0",
+			"key": "utils/errors.ts|complexity|[[\"FunctionDeclaration\",\"humanizeMessage\",\"instance\"]]",
 			"value": 24,
 			"path": "utils/errors.ts",
 			"rule": "complexity",
-			"scope": "humanizeMessage",
+			"scope": "[[\"FunctionDeclaration\",\"humanizeMessage\",\"instance\"]]",
 			"owner": "1MSG SDK/tooling maintainers",
 			"expires": "2026-12-11",
 			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
@@ -45,11 +45,11 @@
 			}
 		},
 		{
-			"key": "utils/errors.ts|complexity|messageFromFailure|0",
+			"key": "utils/errors.ts|complexity|[[\"FunctionDeclaration\",\"messageFromFailure\",\"instance\"]]",
 			"value": 21,
 			"path": "utils/errors.ts",
 			"rule": "complexity",
-			"scope": "messageFromFailure",
+			"scope": "[[\"FunctionDeclaration\",\"messageFromFailure\",\"instance\"]]",
 			"owner": "1MSG SDK/tooling maintainers",
 			"expires": "2026-12-11",
 			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
@@ -59,11 +59,11 @@
 			}
 		},
 		{
-			"key": "utils/errors.ts|sonarjs/cognitive-complexity|extractMessage|0",
+			"key": "utils/errors.ts|sonarjs/cognitive-complexity|[[\"FunctionDeclaration\",\"extractMessage\",\"instance\"]]",
 			"value": 23,
 			"path": "utils/errors.ts",
 			"rule": "sonarjs/cognitive-complexity",
-			"scope": "extractMessage",
+			"scope": "[[\"FunctionDeclaration\",\"extractMessage\",\"instance\"]]",
 			"owner": "1MSG SDK/tooling maintainers",
 			"expires": "2026-12-11",
 			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
@@ -73,11 +73,11 @@
 			}
 		},
 		{
-			"key": "utils/errors.ts|sonarjs/cognitive-complexity|humanizeMessage|0",
+			"key": "utils/errors.ts|sonarjs/cognitive-complexity|[[\"FunctionDeclaration\",\"humanizeMessage\",\"instance\"]]",
 			"value": 16,
 			"path": "utils/errors.ts",
 			"rule": "sonarjs/cognitive-complexity",
-			"scope": "humanizeMessage",
+			"scope": "[[\"FunctionDeclaration\",\"humanizeMessage\",\"instance\"]]",
 			"owner": "1MSG SDK/tooling maintainers",
 			"expires": "2026-12-11",
 			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
@@ -87,11 +87,11 @@
 			}
 		},
 		{
-			"key": "utils/events.ts|sonarjs/cognitive-complexity|rawMetaEvents|0",
+			"key": "utils/events.ts|sonarjs/cognitive-complexity|[[\"FunctionDeclaration\",\"rawMetaEvents\",\"instance\"]]",
 			"value": 41,
 			"path": "utils/events.ts",
 			"rule": "sonarjs/cognitive-complexity",
-			"scope": "rawMetaEvents",
+			"scope": "[[\"FunctionDeclaration\",\"rawMetaEvents\",\"instance\"]]",
 			"owner": "1MSG SDK/tooling maintainers",
 			"expires": "2026-12-11",
 			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
@@ -101,11 +101,11 @@
 			}
 		},
 		{
-			"key": "utils/templates.ts|max-lines-per-function|buildTemplateParams|0",
+			"key": "utils/templates.ts|max-lines-per-function|[[\"FunctionDeclaration\",\"buildTemplateParams\",\"instance\"]]",
 			"value": 81,
 			"path": "utils/templates.ts",
 			"rule": "max-lines-per-function",
-			"scope": "buildTemplateParams",
+			"scope": "[[\"FunctionDeclaration\",\"buildTemplateParams\",\"instance\"]]",
 			"owner": "1MSG SDK/tooling maintainers",
 			"expires": "2026-12-11",
 			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
@@ -115,7 +115,7 @@
 			}
 		},
 		{
-			"key": "utils/templates.ts|max-lines|<file>|0",
+			"key": "utils/templates.ts|max-lines|<file>",
 			"value": 556,
 			"path": "utils/templates.ts",
 			"rule": "max-lines",
@@ -129,11 +129,11 @@
 			}
 		},
 		{
-			"key": "utils/templates.ts|sonarjs/cognitive-complexity|buildTemplateParams|0",
+			"key": "utils/templates.ts|sonarjs/cognitive-complexity|[[\"FunctionDeclaration\",\"buildTemplateParams\",\"instance\"]]",
 			"value": 34,
 			"path": "utils/templates.ts",
 			"rule": "sonarjs/cognitive-complexity",
-			"scope": "buildTemplateParams",
+			"scope": "[[\"FunctionDeclaration\",\"buildTemplateParams\",\"instance\"]]",
 			"owner": "1MSG SDK/tooling maintainers",
 			"expires": "2026-12-11",
 			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
@@ -143,11 +143,11 @@
 			}
 		},
 		{
-			"key": "utils/templates.ts|sonarjs/cognitive-complexity|pushButtonFields|0",
+			"key": "utils/templates.ts|sonarjs/cognitive-complexity|[[\"FunctionDeclaration\",\"pushButtonFields\",\"instance\"]]",
 			"value": 19,
 			"path": "utils/templates.ts",
 			"rule": "sonarjs/cognitive-complexity",
-			"scope": "pushButtonFields",
+			"scope": "[[\"FunctionDeclaration\",\"pushButtonFields\",\"instance\"]]",
 			"owner": "1MSG SDK/tooling maintainers",
 			"expires": "2026-12-11",
 			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
@@ -157,11 +157,11 @@
 			}
 		},
 		{
-			"key": "utils/templates.ts|sonarjs/cognitive-complexity|templateFields|0",
+			"key": "utils/templates.ts|sonarjs/cognitive-complexity|[[\"FunctionDeclaration\",\"templateFields\",\"instance\"]]",
 			"value": 17,
 			"path": "utils/templates.ts",
 			"rule": "sonarjs/cognitive-complexity",
-			"scope": "templateFields",
+			"scope": "[[\"FunctionDeclaration\",\"templateFields\",\"instance\"]]",
 			"owner": "1MSG SDK/tooling maintainers",
 			"expires": "2026-12-11",
 			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
