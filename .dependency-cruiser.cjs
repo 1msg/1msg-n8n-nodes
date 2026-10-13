@@ -51,7 +51,7 @@ module.exports = {
 		enhancedResolveOptions: {
 			exportsFields: ['exports'],
 			conditionNames: ['types', 'require', 'node', 'default'],
-			extensions: ['.js', '.ts', '.json'],
+			extensions: ['.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx', '.mts', '.cts', '.json'],
 		},
 		exclude: '(?:^|/)node_modules/',
 	},
