@@ -27,11 +27,7 @@ function messageEvent(message: Record<string, unknown>, instanceId: unknown): Wa
 		json: {
 			event: outgoing ? 'outgoing' : 'incoming',
 			instanceId: instanceId ?? null,
-			id: message.id ?? null,
 			chatId: message.chatId ?? null,
-			fromMe: outgoing,
-			type: message.type ?? null,
-			body: message.body ?? null,
 			message,
 		},
 	};
@@ -43,7 +39,6 @@ function statusEvent(ack: Record<string, unknown>, instanceId: unknown): WabaEve
 		json: {
 			event: 'status',
 			instanceId: instanceId ?? null,
-			id: ack.id ?? null,
 			chatId: ack.chatId ?? null,
 			status: ack.status ?? null,
 			ack,

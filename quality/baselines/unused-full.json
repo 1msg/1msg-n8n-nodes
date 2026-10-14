@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"adoptionBase": "bc99af8e49f35a4fc5d12ca71d8f8f0bd214f671",
+	"adoptionBase": "2095313ddf94764cad0eb919a153259ff5213c85",
 	"entries": [
 		{
 			"key": "package.json|devDependencies|release-it",
@@ -41,7 +41,7 @@
 			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
 			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
 			"evidence": {
-				"utils/channel.ts": "59cb01b7c4d45740a4626431f2c2a981f229aa6d7e400a35e85432ca289d121d"
+				"utils/channel.ts": "999da5a187c0da9c429c37df0fac1d15bb8beab6bde8b6d2dde409e8930d4a9a"
 			}
 		},
 		{
@@ -55,7 +55,7 @@
 			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
 			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
 			"evidence": {
-				"utils/channel.ts": "59cb01b7c4d45740a4626431f2c2a981f229aa6d7e400a35e85432ca289d121d"
+				"utils/channel.ts": "999da5a187c0da9c429c37df0fac1d15bb8beab6bde8b6d2dde409e8930d4a9a"
 			}
 		},
 		{
@@ -69,7 +69,7 @@
 			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
 			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
 			"evidence": {
-				"utils/channel.ts": "59cb01b7c4d45740a4626431f2c2a981f229aa6d7e400a35e85432ca289d121d"
+				"utils/channel.ts": "999da5a187c0da9c429c37df0fac1d15bb8beab6bde8b6d2dde409e8930d4a9a"
 			}
 		},
 		{
@@ -83,7 +83,7 @@
 			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
 			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
 			"evidence": {
-				"utils/events.ts": "00849644196a5e435c2060593935d887c48e2218cabbb9fa008dbd6bd350d000"
+				"utils/events.ts": "d974e15d3d57903d272472aa9bce5f6880334cbe7b1878ff216e2a96334b247f"
 			}
 		},
 		{
@@ -97,7 +97,7 @@
 			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
 			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
 			"evidence": {
-				"utils/events.ts": "00849644196a5e435c2060593935d887c48e2218cabbb9fa008dbd6bd350d000"
+				"utils/events.ts": "d974e15d3d57903d272472aa9bce5f6880334cbe7b1878ff216e2a96334b247f"
 			}
 		},
 		{
