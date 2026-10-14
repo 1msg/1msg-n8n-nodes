@@ -1,7 +1,7 @@
 import type { IDataObject, IExecuteFunctions, IHttpRequestMethods } from 'n8n-workflow';
 
 import { channelRequestUrl } from '../../utils/api-path';
-import { resolveBaseUrl, resolveInstanceId, stripAuthPrefix } from '../../utils/channel';
+import { resolveChannelCredentials } from '../../utils/channel';
 import { assertSendSucceeded } from '../../utils/errors';
 import { recipientBody } from '../../utils/recipient';
 import {
@@ -110,6 +110,7 @@ async function sendTemplate(
 	return response;
 }
 
+/** Validate the custom request body and channel-relative path before sending it through the shared authenticated transport. */
 async function apiCall(this: IExecuteFunctions, itemIndex: number): Promise<unknown> {
 	const method = this.getNodeParameter('method', itemIndex) as IHttpRequestMethods;
 	const path = this.getNodeParameter('path', itemIndex) as string;
@@ -127,12 +128,7 @@ async function apiCall(this: IExecuteFunctions, itemIndex: number): Promise<unkn
 	}
 
 	const credentials = await this.getCredentials('oneMsgApi');
-	const apiKey = stripAuthPrefix(String(credentials.apiKey || ''));
-	const baseUrl = resolveBaseUrl(
-		String(credentials.environment || ''),
-		String(credentials.baseUrl || ''),
-	);
-	const instanceId = resolveInstanceId(apiKey, String(credentials.channelId || ''));
+	const { baseUrl, instanceId } = resolveChannelCredentials(credentials);
 	// Validate the path before the request so a foreign URL never receives the key.
 	channelRequestUrl(baseUrl, instanceId, path);
 

@@ -94,3 +94,21 @@ export function sandboxQuery(baseUrl: string, apiKey: string): Record<string, st
 	if (!key || !isSandboxHost(baseUrl)) return {};
 	return { token: key };
 }
+
+/** Resolve one credential snapshot consistently for authentication and custom-request URL validation; invalid channels or URL schemes fail before I/O. */
+export function resolveChannelCredentials(credentials: Record<string, unknown>): {
+	apiKey: string;
+	baseUrl: string;
+	instanceId: string;
+} {
+	const apiKey = stripAuthPrefix(String(credentials.apiKey || ''));
+	const baseUrl = resolveBaseUrl(
+		String(credentials.environment || ''),
+		String(credentials.baseUrl || ''),
+	);
+	return {
+		apiKey,
+		baseUrl,
+		instanceId: resolveInstanceId(apiKey, String(credentials.channelId || '')),
+	};
+}

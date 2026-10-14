@@ -9,3 +9,5 @@ The internal isSandboxHost and normalizeBaseUrl helpers no longer export unused 
 Existing initial-adoption evidence was replayed against this main commit. Original owners and expiry dates remain intact; allowance values and clone ceilings were not increased. Obsolete allowances were retired. The remaining violations were not bootstrapped or suppressed.
 
 This records code and package validation under the agreed acceptance of remaining quality debt. It does not assert that all of 1MSG-156 is complete or that a live platform deployment was tested. No release, deployment or live API call was run.
+
+Credential URL/key normalization is now shared by the credential adapter and custom request validation. The duplicate introduced by main was removed without changing request or authentication semantics.
