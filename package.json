@@ -1,6 +1,6 @@
 {
 	"name": "@1msg/n8n-nodes-1msg",
-	"version": "0.1.7",
+	"version": "0.1.8",
 	"description": "Send WhatsApp messages, receive webhooks, and make any API request using the official WhatsApp API through 1MSG.",
 	"license": "MIT",
 	"publishConfig": {

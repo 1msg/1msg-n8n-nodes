@@ -8,7 +8,7 @@ import type {
 import { NodeOperationError } from 'n8n-workflow';
 
 import { channelRequestUrl } from '../utils/api-path';
-import { normalizeBaseUrl, resolveInstanceId, stripAuthPrefix } from '../utils/channel';
+import { resolveBaseUrl, resolveInstanceId, stripAuthPrefix } from '../utils/channel';
 import { extractMessage, humanizeMessage, messageFromFailure } from '../utils/errors';
 
 type OneMsgContext = IExecuteFunctions | ILoadOptionsFunctions | IHookFunctions;
@@ -31,7 +31,7 @@ export async function oneMsgRequest(
 
 	let url = '';
 	try {
-		const baseUrl = normalizeBaseUrl(String(credentials.baseUrl || ''));
+		const baseUrl = resolveBaseUrl(String(credentials.environment || ''), String(credentials.baseUrl || ''));
 		const instanceId = resolveInstanceId(apiKey, String(credentials.channelId || ''));
 		url = channelRequestUrl(baseUrl, instanceId, path);
 	} catch (error) {

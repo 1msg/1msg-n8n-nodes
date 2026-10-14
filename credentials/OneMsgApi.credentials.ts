@@ -8,7 +8,7 @@ import type {
 } from 'n8n-workflow';
 
 import { channelRequestUrl } from '../utils/api-path';
-import { normalizeBaseUrl, resolveInstanceId, stripAuthPrefix } from '../utils/channel';
+import { resolveBaseUrl, resolveInstanceId, sandboxQuery, stripAuthPrefix } from '../utils/channel';
 
 export class OneMsgApi implements ICredentialType {
 	name = 'oneMsgApi';
@@ -31,11 +31,38 @@ export class OneMsgApi implements ICredentialType {
 				'Channel API key from 1MSG. The channel is taken from this key, so you do not pick a channel on each node.',
 		},
 		{
-			displayName: 'Base URL',
+			displayName: 'API URL',
+			name: 'environment',
+			type: 'options',
+			default: 'production',
+			description:
+				'Production is a live channel. Sandbox is a test channel at https://sandbox.1msg.io. Custom is another host 1MSG gave you.',
+			options: [
+				{
+					name: 'Production — https://api.1msg.io',
+					value: 'production',
+				},
+				{
+					name: 'Sandbox — https://sandbox.1msg.io',
+					value: 'sandbox',
+				},
+				{
+					name: 'Custom',
+					value: 'custom',
+				},
+			],
+		},
+		{
+			displayName: 'API URL',
 			name: 'baseUrl',
 			type: 'string',
-			default: 'https://api.1msg.io',
-			description: '1MSG API host. Keep https://api.1msg.io unless you were given another host.',
+			default: 'https://sandbox.stage.1msg.io',
+			description: 'Host 1MSG gave you, for example https://sandbox.stage.1msg.io.',
+			displayOptions: {
+				show: {
+					environment: ['custom'],
+				},
+			},
 		},
 		{
 			displayName: 'Channel ID',
@@ -43,7 +70,7 @@ export class OneMsgApi implements ICredentialType {
 			type: 'string',
 			default: '',
 			description:
-				'Leave empty when the API key already belongs to one channel. Fill this only for an older key that is not tied to a channel.',
+				'Required for a sandbox channel and for an older key that is not tied to one channel. Leave empty when a production API key already belongs to one channel.',
 		},
 	];
 
@@ -52,26 +79,33 @@ export class OneMsgApi implements ICredentialType {
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
 		const apiKey = stripAuthPrefix(String(credentials.apiKey || ''));
-		const baseUrl = normalizeBaseUrl(String(credentials.baseUrl || ''));
+		const baseUrl = resolveBaseUrl(String(credentials.environment || ''), String(credentials.baseUrl || ''));
 		const instanceId = resolveInstanceId(apiKey, String(credentials.channelId || ''));
 		const headers = {
 			...requestOptions.headers,
 			Authorization: `Bearer ${apiKey}`,
 		};
 		let url = requestOptions.url ?? '';
-		if (url.startsWith('/')) {
-			url = channelRequestUrl(baseUrl, instanceId, url);
+		if (!url || url.startsWith('/')) {
+			url = channelRequestUrl(baseUrl, instanceId, url || '/status');
 		}
-		return {
+		const qs = {
+			...(requestOptions.qs ?? {}),
+			...sandboxQuery(baseUrl, apiKey),
+			...sandboxQuery(url, apiKey),
+		};
+		const next: IHttpRequestOptions = {
 			...requestOptions,
 			url,
 			headers,
+			qs,
 		};
+		delete next.baseURL;
+		return next;
 	}
 
 	test: ICredentialTestRequest = {
 		request: {
-			baseURL: '={{$credentials.baseUrl}}',
 			url: '/status',
 			method: 'GET',
 		},

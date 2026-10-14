@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { recipientBody } = require('../dist/utils/recipient');
-const { resolveInstanceId } = require('../dist/utils/channel');
+const { resolveInstanceId, resolveBaseUrl, sandboxQuery } = require('../dist/utils/channel');
 const { channelRequestUrl } = require('../dist/utils/api-path');
 const { humanizeMessage, assertSendSucceeded, messageFromFailure } = require('../dist/utils/errors');
 const { addWebhookUrl, removeWebhookUrl, webhookUrls } = require('../dist/utils/webhooks');
@@ -36,6 +36,24 @@ test('channel id comes from the API key', () => {
 	assert.equal(resolveInstanceId(key), '371267300');
 	assert.equal(resolveInstanceId('plain-key', 'HEI1'), 'HEI1');
 	assert.throws(() => resolveInstanceId('plain-key'), /not tied to a channel/);
+});
+
+test('API URL selects production, sandbox, or a saved host', () => {
+	assert.equal(resolveBaseUrl('production', 'https://eu.1msg.io'), 'https://api.1msg.io');
+	assert.equal(resolveBaseUrl('sandbox', ''), 'https://sandbox.1msg.io');
+	assert.equal(resolveBaseUrl('custom', 'https://sandbox.stage.1msg.io/'), 'https://sandbox.stage.1msg.io');
+	assert.equal(resolveBaseUrl('', 'https://eu.1msg.io'), 'https://eu.1msg.io');
+	assert.deepEqual(sandboxQuery('https://api.1msg.io', 'TKNabc'), {});
+	assert.deepEqual(sandboxQuery('https://sandbox.1msg.io', 'Bearer TKNabc'), { token: 'TKNabc' });
+	assert.deepEqual(sandboxQuery('https://sandbox.stage.1msg.io/ch/status', 'TKNabc'), { token: 'TKNabc' });
+});
+
+test('package description names the official WhatsApp API', () => {
+	const expected =
+		'Send WhatsApp messages, receive webhooks, and make any API request using the official WhatsApp API through 1MSG.';
+	assert.equal(require('../package.json').description, expected);
+	const source = require('node:fs').readFileSync(require('node:path').join(__dirname, '../nodes/Waba/Waba.node.ts'), 'utf8');
+	assert.match(source, /official WhatsApp API through 1MSG/);
 });
 
 test('API path stays on the 1MSG host and does not repeat the channel', () => {
@@ -99,8 +117,16 @@ test('events keep incoming messages and delivery statuses that were selected', (
 		selected.map((event) => event.kind),
 		['incoming', 'status'],
 	);
-	assert.equal(selected[0].json.body, 'Hi');
+	assert.equal(selected[0].json.event, 'incoming');
+	assert.equal(selected[0].json.chatId, '1@c.us');
+	assert.equal(selected[0].json.message.body, 'Hi');
+	assert.equal(selected[0].json.id, undefined);
+	assert.equal(selected[0].json.fromMe, undefined);
+	assert.equal(selected[0].json.type, undefined);
+	assert.equal(selected[0].json.body, undefined);
 	assert.equal(selected[1].json.status, 'delivered');
+	assert.equal(selected[1].json.ack.status, 'delivered');
+	assert.equal(selected[1].json.id, undefined);
 });
 
 test('raw provider payloads are classified when the channel uses them', () => {

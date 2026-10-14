@@ -3,7 +3,7 @@ import type { IDataObject, IExecuteFunctions, IHttpRequestMethods } from 'n8n-wo
 import { listApprovedTemplates } from './listTemplates';
 import { oneMsgRequest } from '../transport';
 import { channelRequestUrl } from '../../utils/api-path';
-import { normalizeBaseUrl, resolveInstanceId, stripAuthPrefix } from '../../utils/channel';
+import { resolveBaseUrl, resolveInstanceId, stripAuthPrefix } from '../../utils/channel';
 import { assertSendSucceeded } from '../../utils/errors';
 import { recipientBody } from '../../utils/recipient';
 import {
@@ -127,7 +127,7 @@ async function apiCall(this: IExecuteFunctions, itemIndex: number): Promise<unkn
 
 	const credentials = await this.getCredentials('oneMsgApi');
 	const apiKey = stripAuthPrefix(String(credentials.apiKey || ''));
-	const baseUrl = normalizeBaseUrl(String(credentials.baseUrl || ''));
+	const baseUrl = resolveBaseUrl(String(credentials.environment || ''), String(credentials.baseUrl || ''));
 	const instanceId = resolveInstanceId(apiKey, String(credentials.channelId || ''));
 	// Validate the path before the request so a foreign URL never receives the key.
 	channelRequestUrl(baseUrl, instanceId, path);
