@@ -2,7 +2,7 @@
 
 The PR branch includes main `2095313ddf94764cad0eb919a153259ff5213c85`. This is a merge into the PR branch, not a merge of the PR into main.
 
-Validation: frozen application and quality installs, 18 offline tests, production build and packed-entrypoint smoke. All gates were executed individually so an early quality failure could not skip the application checks. Functional checks pass; the required quality status remains red for the findings below.
+Validation: frozen application and quality installs, 18 offline tests, production build and packed-entrypoint smoke. All gates were executed individually so an early quality failure could not skip the application checks. The complete quality and consumer matrix passed on `bb283932aac4eba7f4acb3843fcf74d8a1d18436`; CI independently verifies subsequent heads.
 
 The internal isSandboxHost and normalizeBaseUrl helpers no longer export unused symbols. Package entrypoints and n8n registrations remain unchanged. Fresh consumer installation is checked on Node 20 with n8n-workflow 1.117.1 and on Node 22/24 with the latest workflow peer; the latest peer transitively requires Node 22.
 
