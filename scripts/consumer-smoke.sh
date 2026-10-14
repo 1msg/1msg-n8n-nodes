@@ -6,7 +6,7 @@ consumer=$(mktemp -d)
 trap 'rm -rf "$consumer"' EXIT
 cd "$consumer"
 printf '{"private":true}' > package.json
-npm install --engine-strict --ignore-scripts --no-audit --no-fund "$artifact"
+npm install --engine-strict --ignore-scripts --no-audit --no-fund "$artifact" "$3"
 # Resolve every public executable or n8n registration from the installed package.
 node - "$2" <<'NODE'
 const assert = require('node:assert/strict');

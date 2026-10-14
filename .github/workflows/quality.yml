@@ -49,7 +49,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['20', '22', '24']
+        include:
+          # Legacy hosts provide a compatible workflow peer; latest n8n requires Node 22.
+          - node: '20'
+            peer: 'n8n-workflow@1.117.1'
+          - node: '22'
+            peer: 'n8n-workflow@latest'
+          - node: '24'
+            peer: 'n8n-workflow@latest'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -62,7 +69,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-      - run: bash scripts/consumer-smoke.sh "$RUNNER_TEMP"/packed/*.tgz '@1msg/n8n-nodes-1msg'
+      - run: bash scripts/consumer-smoke.sh "$RUNNER_TEMP"/packed/*.tgz '@1msg/n8n-nodes-1msg' '${{ matrix.peer }}'
   quality-required:
     if: always()
     needs: [checks, package-consumer]
