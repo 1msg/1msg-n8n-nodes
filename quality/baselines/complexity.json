@@ -1,0 +1,174 @@
+{
+	"schemaVersion": 1,
+	"adoptionBase": "2095313ddf94764cad0eb919a153259ff5213c85",
+	"entries": [
+		{
+			"key": "nodes/Waba/listTemplates.ts|sonarjs/cognitive-complexity|[[\"FunctionDeclaration\",\"listApprovedTemplates\",\"instance\"]]",
+			"value": 22,
+			"path": "nodes/Waba/listTemplates.ts",
+			"rule": "sonarjs/cognitive-complexity",
+			"scope": "[[\"FunctionDeclaration\",\"listApprovedTemplates\",\"instance\"]]",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"nodes/Waba/listTemplates.ts": "5539bec51064b1b3a1502bcd9211c85a8fecb1ae392b836acb8e13625881585c"
+			}
+		},
+		{
+			"key": "utils/api-path.ts|sonarjs/cognitive-complexity|[[\"FunctionDeclaration\",\"channelRequestUrl\",\"instance\"]]",
+			"value": 19,
+			"path": "utils/api-path.ts",
+			"rule": "sonarjs/cognitive-complexity",
+			"scope": "[[\"FunctionDeclaration\",\"channelRequestUrl\",\"instance\"]]",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/api-path.ts": "089c3105b07c27e0271199c4d7c56750ca056dd3ad81bebe854b6010e12f0cdd"
+			}
+		},
+		{
+			"key": "utils/errors.ts|complexity|[[\"FunctionDeclaration\",\"humanizeMessage\",\"instance\"]]",
+			"value": 24,
+			"path": "utils/errors.ts",
+			"rule": "complexity",
+			"scope": "[[\"FunctionDeclaration\",\"humanizeMessage\",\"instance\"]]",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/errors.ts": "711c36c4d1629d946a5f099efc9d6f23800e1abf913b547b2d0e823ec3e2f4c4"
+			}
+		},
+		{
+			"key": "utils/errors.ts|complexity|[[\"FunctionDeclaration\",\"messageFromFailure\",\"instance\"]]",
+			"value": 21,
+			"path": "utils/errors.ts",
+			"rule": "complexity",
+			"scope": "[[\"FunctionDeclaration\",\"messageFromFailure\",\"instance\"]]",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/errors.ts": "711c36c4d1629d946a5f099efc9d6f23800e1abf913b547b2d0e823ec3e2f4c4"
+			}
+		},
+		{
+			"key": "utils/errors.ts|sonarjs/cognitive-complexity|[[\"FunctionDeclaration\",\"extractMessage\",\"instance\"]]",
+			"value": 23,
+			"path": "utils/errors.ts",
+			"rule": "sonarjs/cognitive-complexity",
+			"scope": "[[\"FunctionDeclaration\",\"extractMessage\",\"instance\"]]",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/errors.ts": "711c36c4d1629d946a5f099efc9d6f23800e1abf913b547b2d0e823ec3e2f4c4"
+			}
+		},
+		{
+			"key": "utils/errors.ts|sonarjs/cognitive-complexity|[[\"FunctionDeclaration\",\"humanizeMessage\",\"instance\"]]",
+			"value": 16,
+			"path": "utils/errors.ts",
+			"rule": "sonarjs/cognitive-complexity",
+			"scope": "[[\"FunctionDeclaration\",\"humanizeMessage\",\"instance\"]]",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/errors.ts": "711c36c4d1629d946a5f099efc9d6f23800e1abf913b547b2d0e823ec3e2f4c4"
+			}
+		},
+		{
+			"key": "utils/events.ts|sonarjs/cognitive-complexity|[[\"FunctionDeclaration\",\"rawMetaEvents\",\"instance\"]]",
+			"value": 41,
+			"path": "utils/events.ts",
+			"rule": "sonarjs/cognitive-complexity",
+			"scope": "[[\"FunctionDeclaration\",\"rawMetaEvents\",\"instance\"]]",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/events.ts": "d974e15d3d57903d272472aa9bce5f6880334cbe7b1878ff216e2a96334b247f"
+			}
+		},
+		{
+			"key": "utils/templates.ts|max-lines-per-function|[[\"FunctionDeclaration\",\"buildTemplateParams\",\"instance\"]]",
+			"value": 81,
+			"path": "utils/templates.ts",
+			"rule": "max-lines-per-function",
+			"scope": "[[\"FunctionDeclaration\",\"buildTemplateParams\",\"instance\"]]",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/templates.ts": "64b68bcd0513936e18479e140e1cc99d98c439d1a6ed56950aeb70e8048a46d5"
+			}
+		},
+		{
+			"key": "utils/templates.ts|max-lines|<file>",
+			"value": 556,
+			"path": "utils/templates.ts",
+			"rule": "max-lines",
+			"scope": "<file>",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/templates.ts": "64b68bcd0513936e18479e140e1cc99d98c439d1a6ed56950aeb70e8048a46d5"
+			}
+		},
+		{
+			"key": "utils/templates.ts|sonarjs/cognitive-complexity|[[\"FunctionDeclaration\",\"buildTemplateParams\",\"instance\"]]",
+			"value": 34,
+			"path": "utils/templates.ts",
+			"rule": "sonarjs/cognitive-complexity",
+			"scope": "[[\"FunctionDeclaration\",\"buildTemplateParams\",\"instance\"]]",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/templates.ts": "64b68bcd0513936e18479e140e1cc99d98c439d1a6ed56950aeb70e8048a46d5"
+			}
+		},
+		{
+			"key": "utils/templates.ts|sonarjs/cognitive-complexity|[[\"FunctionDeclaration\",\"pushButtonFields\",\"instance\"]]",
+			"value": 19,
+			"path": "utils/templates.ts",
+			"rule": "sonarjs/cognitive-complexity",
+			"scope": "[[\"FunctionDeclaration\",\"pushButtonFields\",\"instance\"]]",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/templates.ts": "64b68bcd0513936e18479e140e1cc99d98c439d1a6ed56950aeb70e8048a46d5"
+			}
+		},
+		{
+			"key": "utils/templates.ts|sonarjs/cognitive-complexity|[[\"FunctionDeclaration\",\"templateFields\",\"instance\"]]",
+			"value": 17,
+			"path": "utils/templates.ts",
+			"rule": "sonarjs/cognitive-complexity",
+			"scope": "[[\"FunctionDeclaration\",\"templateFields\",\"instance\"]]",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical maintainability findings replayed at the adoption base; individual measurements cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/templates.ts": "64b68bcd0513936e18479e140e1cc99d98c439d1a6ed56950aeb70e8048a46d5"
+			}
+		}
+	]
+}

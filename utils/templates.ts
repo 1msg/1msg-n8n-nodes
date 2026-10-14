@@ -1,81 +1,23 @@
-export interface TemplateRecord {
-	id?: string;
-	name?: string;
-	language?: unknown;
-	category?: string;
-	status?: string;
-	namespace?: string;
-	components?: unknown;
-}
+import type {
+	ButtonRecord,
+	ComponentRecord,
+	TemplateRecord,
+	TemplateField,
+} from './template-shapes';
 
-export interface TemplateField {
-	id: string;
-	displayName: string;
-	description: string;
-	required?: boolean;
-}
-
-export class TemplateError extends Error {
-	constructor(message: string) {
-		super(message);
-		this.name = 'TemplateError';
-	}
-}
-
-interface ButtonRecord {
-	type?: string;
-	text?: string;
-	url?: string;
-}
-
-interface ComponentRecord {
-	type?: string;
-	format?: string;
-	subType?: string;
-	text?: string;
-	buttons?: ButtonRecord[];
-	cards?: unknown[];
-	card_components?: unknown[];
-	components?: unknown[];
-	header?: { format?: string; type?: string; subType?: string };
-	body?: string;
-	limited_time_offer?: { has_expiration?: boolean; text?: string };
-}
-
-function asRecord(value: unknown): ComponentRecord | undefined {
-	if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
-	return value as ComponentRecord;
-}
+import {
+	asRecord,
+	upper,
+	TemplateError,
+	normalizeComponents,
+	languageCode,
+} from './template-shapes';
+import { fieldId, requireValue, textParameters, mediaParameter } from './template-values';
 
 function componentList(components: unknown): ComponentRecord[] {
 	const parsed = normalizeComponents(components);
 	if (!Array.isArray(parsed)) return [];
 	return parsed.map(asRecord).filter((item): item is ComponentRecord => Boolean(item));
-}
-
-/** 1MSG sometimes returns template components as a JSON string. */
-export function normalizeComponents(components: unknown): unknown {
-	if (typeof components !== 'string') return components;
-	const trimmed = components.trim();
-	if (!trimmed) return [];
-	try {
-		return JSON.parse(trimmed) as unknown;
-	} catch {
-		return [];
-	}
-}
-
-function upper(value: unknown): string {
-	return String(value || '').toUpperCase();
-}
-
-export function languageCode(language: unknown): string {
-	if (typeof language === 'string') return language;
-	if (language && typeof language === 'object' && !Array.isArray(language)) {
-		const code = (language as { code?: unknown }).code;
-		if (typeof code === 'string') return code;
-	}
-	return '';
 }
 
 function placeholders(text: string): string[] {
@@ -97,10 +39,12 @@ function placeholders(text: string): string[] {
 	return keys;
 }
 
+/** Resolve a template variable label from its declared examples and retain a deterministic fallback for missing metadata. */
 function variableLabel(token: string, where: string): string {
 	if (/^\d+$/.test(token)) {
 		if (where === 'text') return `Variable ${token} in the text`;
-		if (where === 'header') return Number(token) === 1 ? 'Variable in the header' : `Variable ${token} in the header`;
+		if (where === 'header')
+			return Number(token) === 1 ? 'Variable in the header' : `Variable ${token} in the header`;
 		return `Variable ${token} in the link button`;
 	}
 	if (where === 'text') return `Variable ${token} in the text`;
@@ -108,13 +52,10 @@ function variableLabel(token: string, where: string): string {
 	return `Variable ${token} in the link button`;
 }
 
-function fieldId(prefix: string, token: string): string {
-	const safe = token.replace(/[^A-Za-z0-9_]/g, '_');
-	return `${prefix}${safe}`;
-}
-
 function mediaFormat(component: ComponentRecord): string {
-	return upper(component.format || component.subType || component.header?.format || component.header?.type);
+	return upper(
+		component.format || component.subType || component.header?.format || component.header?.type,
+	);
 }
 
 function isMedia(format: string): boolean {
@@ -127,7 +68,9 @@ function mediaNoun(format: string): string {
 	return 'image';
 }
 
-function indexedButtons(component: ComponentRecord): Array<{ button: ButtonRecord; index: number }> {
+function indexedButtons(
+	component: ComponentRecord,
+): Array<{ button: ButtonRecord; index: number }> {
 	const buttons = Array.isArray(component.buttons) ? component.buttons : [];
 	return buttons.map((button, index) => ({ button, index }));
 }
@@ -145,6 +88,7 @@ function linkButtonLabel(button: ButtonRecord, labelPrefix: string): string {
 	return `Variable in the link button${quoted}`;
 }
 
+/** Describe interactive button inputs in template order, preserving each button type and supported parameter contract. */
 function pushButtonFields(
 	fields: TemplateField[],
 	buttons: Array<{ button: ButtonRecord; index: number }>,
@@ -165,7 +109,8 @@ function pushButtonFields(
 			fields.push({
 				id: 'otp_code',
 				displayName: 'One-time code',
-				description: 'The code the recipient can copy. It is sent in the message and on the copy button.',
+				description:
+					'The code the recipient can copy. It is sent in the message and on the copy button.',
 			});
 		}
 		if (type === 'COPY_CODE') {
@@ -276,6 +221,7 @@ function buttonParameter(
 	return undefined;
 }
 
+/** Append required template text variables with stable keys and example labels for the node editor. */
 function pushTextFields(
 	fields: TemplateField[],
 	text: string,
@@ -287,7 +233,9 @@ function pushTextFields(
 		const name = variableLabel(token, where);
 		fields.push({
 			id: fieldId(prefix, token),
-			displayName: labelPrefix ? `${labelPrefix}, ${name.charAt(0).toLowerCase()}${name.slice(1)}` : name,
+			displayName: labelPrefix
+				? `${labelPrefix}, ${name.charAt(0).toLowerCase()}${name.slice(1)}`
+				: name,
 			description: text,
 		});
 	}
@@ -298,6 +246,7 @@ function cardComponents(card: ComponentRecord): ComponentRecord[] {
 	return [];
 }
 
+/** Derive node parameter fields from template components without requiring remote data or mutating the supplied template. */
 export function templateFields(components: unknown): TemplateField[] {
 	const fields: TemplateField[] = [];
 	for (const component of componentList(components)) {
@@ -324,7 +273,8 @@ export function templateFields(components: unknown): TemplateField[] {
 			fields.push({
 				id: 'offer_expiration',
 				displayName: 'Offer expiration',
-				description: 'When the offer ends, for example 2026-10-02T18:00:00Z, or unix time in milliseconds.',
+				description:
+					'When the offer ends, for example 2026-10-02T18:00:00Z, or unix time in milliseconds.',
 			});
 		}
 		if (type === 'CAROUSEL') {
@@ -370,35 +320,82 @@ export function templateFields(components: unknown): TemplateField[] {
 	return fields;
 }
 
-function requireValue(values: Record<string, string>, id: string, label: string): string {
-	const value = values[id];
-	if (typeof value !== 'string' || !value.trim()) {
-		throw new TemplateError(`Fill in “${label}”.`);
-	}
-	return value.trim();
-}
-
-function textParameters(tokens: string[], values: Record<string, string>, prefix: string, labels: Map<string, string>) {
-	return tokens.map((token) => {
-		const id = fieldId(prefix, token);
-		return {
-			type: 'text',
-			text: requireValue(values, id, labels.get(id) || id),
-		};
-	});
-}
-
-function mediaParameter(format: string, link: string): Record<string, unknown> {
-	if (format === 'VIDEO') return { type: 'video', video: { link } };
-	if (format === 'DOCUMENT') return { type: 'document', document: { link } };
-	return { type: 'image', image: { link } };
-}
-
 function labelsById(components: unknown): Map<string, string> {
 	return new Map(templateFields(components).map((field) => [field.id, field.displayName]));
 }
 
-export function buildTemplateParams(components: unknown, values: Record<string, string>): unknown[] {
+/** Build complete carousel cards, validating each required media/product/button field before producing the wire payload. */
+function buildCarouselCards(
+	carousel: ComponentRecord,
+	values: Record<string, string>,
+	labels: Map<string, string>,
+): unknown[] {
+	const cards = carousel.cards || carousel.card_components || [];
+	/** Convert each card into its indexed wire components while retaining the source card order. */
+	return cards.map((rawCard, cardIndex) => {
+		const card = asRecord(rawCard) || {};
+		const cardNumber = cardIndex + 1;
+		const prefix = `card_${cardNumber}_`;
+		const nested = cardComponents(card);
+		const cardParams: unknown[] = [];
+		const header =
+			nested.find((item) => upper(item.type) === 'HEADER') || asRecord(card.header) || {};
+		const format = mediaFormat(header);
+		if (isMedia(format)) {
+			const link = requireValue(
+				values,
+				`${prefix}header_media_url`,
+				`Card ${cardNumber} file link`,
+			);
+			cardParams.push({ type: 'header', parameters: [mediaParameter(format, link)] });
+		}
+		if (format === 'PRODUCT') {
+			const productId = requireValue(
+				values,
+				`${prefix}product_id`,
+				`Card ${cardNumber} product ID`,
+			);
+			cardParams.push({
+				type: 'header',
+				parameters: [
+					{
+						type: 'product',
+						product: {
+							product_retailer_id: productId,
+							catalog_id: requireValue(values, 'catalog_id', 'Catalog ID'),
+						},
+					},
+				],
+			});
+		}
+		const bodyComponent = nested.find((item) => upper(item.type) === 'BODY');
+		const bodyText = bodyComponent?.text || (typeof card.body === 'string' ? card.body : '');
+		const tokens = placeholders(bodyText);
+		if (tokens.length) {
+			cardParams.push({
+				type: 'body',
+				parameters: textParameters(tokens, values, `${prefix}body_`, labels),
+			});
+		}
+		for (const { button, index } of cardButtons(card)) {
+			const built = buttonParameter(
+				button,
+				index,
+				buttonValueId(prefix, button, index),
+				values,
+				labels,
+			);
+			if (built) cardParams.push(built);
+		}
+		return { card_index: cardIndex, components: cardParams };
+	});
+}
+
+/** Build template parameters in component order and insert an OTP body only when the template has none. */
+export function buildTemplateParams(
+	components: unknown,
+	values: Record<string, string>,
+): unknown[] {
 	const labels = labelsById(components);
 	const params: unknown[] = [];
 	const list = componentList(components);
@@ -433,7 +430,13 @@ export function buildTemplateParams(components: unknown, values: Record<string, 
 		}
 		if (type === 'BUTTONS') {
 			for (const { button, index } of indexedButtons(component)) {
-				const built = buttonParameter(button, index, buttonValueId('', button, index), values, labels);
+				const built = buttonParameter(
+					button,
+					index,
+					buttonValueId('', button, index),
+					values,
+					labels,
+				);
 				if (built) params.push(built);
 			}
 		}
@@ -444,7 +447,9 @@ export function buildTemplateParams(components: unknown, values: Record<string, 
 					{
 						type: 'limited_time_offer',
 						limited_time_offer: {
-							expiration_time_ms: expirationMs(requireValue(values, 'offer_expiration', 'Offer expiration')),
+							expiration_time_ms: expirationMs(
+								requireValue(values, 'offer_expiration', 'Offer expiration'),
+							),
 						},
 					},
 				],
@@ -466,49 +471,7 @@ export function buildTemplateParams(components: unknown, values: Record<string, 
 
 	const carousel = list.find((component) => upper(component.type) === 'CAROUSEL');
 	if (carousel) {
-		const cards = carousel.cards || carousel.card_components || [];
-		const built = cards.map((rawCard, cardIndex) => {
-			const card = asRecord(rawCard) || {};
-			const cardNumber = cardIndex + 1;
-			const prefix = `card_${cardNumber}_`;
-			const nested = cardComponents(card);
-			const cardParams: unknown[] = [];
-			const header = nested.find((item) => upper(item.type) === 'HEADER') || asRecord(card.header) || {};
-			const format = mediaFormat(header);
-			if (isMedia(format)) {
-				const link = requireValue(values, `${prefix}header_media_url`, `Card ${cardNumber} file link`);
-				cardParams.push({ type: 'header', parameters: [mediaParameter(format, link)] });
-			}
-			if (format === 'PRODUCT') {
-				const productId = requireValue(values, `${prefix}product_id`, `Card ${cardNumber} product ID`);
-				cardParams.push({
-					type: 'header',
-					parameters: [
-						{
-							type: 'product',
-							product: {
-								product_retailer_id: productId,
-								catalog_id: requireValue(values, 'catalog_id', 'Catalog ID'),
-							},
-						},
-					],
-				});
-			}
-			const bodyComponent = nested.find((item) => upper(item.type) === 'BODY');
-			const bodyText = bodyComponent?.text || (typeof card.body === 'string' ? card.body : '');
-			const tokens = placeholders(bodyText);
-			if (tokens.length) {
-				cardParams.push({
-					type: 'body',
-					parameters: textParameters(tokens, values, `${prefix}body_`, labels),
-				});
-			}
-			for (const { button, index } of cardButtons(card)) {
-				const built = buttonParameter(button, index, buttonValueId(prefix, button, index), values, labels);
-				if (built) cardParams.push(built);
-			}
-			return { card_index: cardIndex, components: cardParams };
-		});
+		const built = buildCarouselCards(carousel, values, labels);
 		if (built.length) params.push({ type: 'carousel', cards: built });
 	}
 
@@ -531,6 +494,7 @@ export function isApproved(template: TemplateRecord): boolean {
 	return upper(template.status) === 'APPROVED';
 }
 
+/** Resolve an approved template by exact key, ID or unambiguous name; reject missing and ambiguous selections. */
 export function findTemplate(templates: TemplateRecord[], key: string): TemplateRecord {
 	const trimmed = key.trim();
 	if (!trimmed) {
@@ -541,9 +505,11 @@ export function findTemplate(templates: TemplateRecord[], key: string): Template
 	const byId = templates.find((template) => template.id && String(template.id) === trimmed);
 	if (byId) return byId;
 	const byName = templates.filter(
-		(template) => template.name === trimmed || `${template.name}|${languageCode(template.language)}` === trimmed,
+		(template) =>
+			template.name === trimmed ||
+			`${template.name}|${languageCode(template.language)}` === trimmed,
 	);
-	if (byName.length === 1) return byName[0];
+	if (byName.length === 1 && byName[0]) return byName[0];
 	if (byName.length > 1) {
 		throw new TemplateError(
 			`Several approved templates are named “${trimmed}”. Pick one from the list so the language is clear.`,
@@ -556,13 +522,21 @@ export function findTemplate(templates: TemplateRecord[], key: string): Template
 
 export function templatesFromResponse(response: unknown): TemplateRecord[] {
 	if (Array.isArray(response)) return response as TemplateRecord[];
-	if (response && typeof response === 'object' && Array.isArray((response as { templates?: unknown }).templates)) {
+	if (
+		response &&
+		typeof response === 'object' &&
+		Array.isArray((response as { templates?: unknown }).templates)
+	) {
 		return (response as { templates: TemplateRecord[] }).templates;
 	}
 	return [];
 }
 
-const NAMESPACE_KEYS = ['namespace', 'message_template_namespace', 'messageTemplateNamespace'] as const;
+const NAMESPACE_KEYS = [
+	'namespace',
+	'message_template_namespace',
+	'messageTemplateNamespace',
+] as const;
 
 export function readNamespace(template: TemplateRecord): string {
 	const record = template as unknown as Record<string, unknown>;
@@ -578,7 +552,10 @@ export function readNamespace(template: TemplateRecord): string {
  * On some channels it is only present on other templates of the same account,
  * and then only when every listed namespace is the same.
  */
-export function resolveNamespace(template: TemplateRecord, siblings: TemplateRecord[] = []): string {
+export function resolveNamespace(
+	template: TemplateRecord,
+	siblings: TemplateRecord[] = [],
+): string {
 	const own = readNamespace(template);
 	if (own) return own;
 	const found = new Set<string>();
@@ -586,10 +563,11 @@ export function resolveNamespace(template: TemplateRecord, siblings: TemplateRec
 		const namespace = readNamespace(sibling);
 		if (namespace) found.add(namespace);
 	}
-	if (found.size === 1) return [...found][0];
+	if (found.size === 1) return found.values().next().value ?? '';
 	return '';
 }
 
+/** Return the template identifier and language required by the send endpoint, rejecting incomplete template metadata. */
 export function templateSendIdentity(
 	template: TemplateRecord,
 	siblings: TemplateRecord[] = [],
@@ -601,10 +579,14 @@ export function templateSendIdentity(
 	const name = template.name?.trim();
 	const code = languageCode(template.language);
 	if (!name) {
-		throw new TemplateError('The selected template has no name. Refresh the list and choose it again.');
+		throw new TemplateError(
+			'The selected template has no name. Refresh the list and choose it again.',
+		);
 	}
 	if (!code) {
-		throw new TemplateError(`Template “${name}” has no language. Refresh the list and choose it again.`);
+		throw new TemplateError(
+			`Template “${name}” has no language. Refresh the list and choose it again.`,
+		);
 	}
 	const namespace = resolveNamespace(template, siblings);
 	if (!namespace) {
@@ -618,3 +600,7 @@ export function templateSendIdentity(
 		language: { policy: 'deterministic', code },
 	};
 }
+
+// Retain the public template module surface for existing node consumers.
+export { TemplateError, normalizeComponents, languageCode } from './template-shapes';
+export type { TemplateRecord, TemplateField } from './template-shapes';

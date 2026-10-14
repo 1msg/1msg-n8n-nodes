@@ -5,6 +5,7 @@ import type {
 	IHttpRequestMethods,
 	ILoadOptionsFunctions,
 } from 'n8n-workflow';
+
 import { NodeOperationError } from 'n8n-workflow';
 
 import { channelRequestUrl } from '../utils/api-path';
@@ -13,6 +14,7 @@ import { extractMessage, humanizeMessage, messageFromFailure } from '../utils/er
 
 type OneMsgContext = IExecuteFunctions | ILoadOptionsFunctions | IHookFunctions;
 
+/** Resolve validated n8n credentials, send one authenticated request through the host HTTP adapter, and normalize API failures. */
 export async function oneMsgRequest(
 	this: OneMsgContext,
 	method: IHttpRequestMethods,
@@ -31,11 +33,17 @@ export async function oneMsgRequest(
 
 	let url = '';
 	try {
-		const baseUrl = resolveBaseUrl(String(credentials.environment || ''), String(credentials.baseUrl || ''));
+		const baseUrl = resolveBaseUrl(
+			String(credentials.environment || ''),
+			String(credentials.baseUrl || ''),
+		);
 		const instanceId = resolveInstanceId(apiKey, String(credentials.channelId || ''));
 		url = channelRequestUrl(baseUrl, instanceId, path);
 	} catch (error) {
-		throw new NodeOperationError(this.getNode(), error instanceof Error ? error : new Error(String(error)));
+		throw new NodeOperationError(
+			this.getNode(),
+			error instanceof Error ? error : new Error(String(error)),
+		);
 	}
 
 	let full: unknown;
@@ -43,8 +51,8 @@ export async function oneMsgRequest(
 		full = await this.helpers.httpRequestWithAuthentication.call(this, 'oneMsgApi', {
 			method,
 			url,
-			body: body === undefined ? undefined : body,
-			qs,
+			...(body === undefined ? {} : { body }),
+			...(qs === undefined ? {} : { qs }),
 			json: true,
 			returnFullResponse: true,
 			ignoreHttpStatusErrors: true,
@@ -67,14 +75,21 @@ export async function oneMsgRequest(
 	return unwrapped.body;
 }
 
+/** Distinguish the host full-response envelope from a normal API body; expose only finite numeric status codes. */
 function unwrapResponse(full: unknown): { statusCode?: number; body: unknown } {
-	if (!full || typeof full !== 'object' || !('statusCode' in full) || !('body' in full) || !('headers' in full)) {
+	if (
+		!full ||
+		typeof full !== 'object' ||
+		!('statusCode' in full) ||
+		!('body' in full) ||
+		!('headers' in full)
+	) {
 		return { body: full };
 	}
 	const record = full as { statusCode?: unknown; body?: unknown };
 	const statusCode = Number(record.statusCode);
 	return {
-		statusCode: Number.isFinite(statusCode) ? statusCode : undefined,
+		...(Number.isFinite(statusCode) ? { statusCode } : {}),
 		body: record.body,
 	};
 }

@@ -22,11 +22,11 @@ On a self-hosted n8n you can also add the package to `N8N_CUSTOM_EXTENSIONS` or 
 
 Create a credential named **1MSG API**.
 
-| Field | What to paste |
-| --- | --- |
-| API Key | The channel API key from 1MSG channel settings. The channel is read from this key. |
-| API URL | **Production** is `https://api.1msg.io`. **Sandbox** is a test channel at `https://sandbox.1msg.io`. **Custom** is another host 1MSG gave you, for example `https://sandbox.stage.1msg.io`. |
-| Channel ID | Leave empty for a production key that already belongs to one channel. Fill it for a sandbox channel and for an older key. |
+| Field      | What to paste                                                                                                                                                                               |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API Key    | The channel API key from 1MSG channel settings. The channel is read from this key.                                                                                                          |
+| API URL    | **Production** is `https://api.1msg.io`. **Sandbox** is a test channel at `https://sandbox.1msg.io`. **Custom** is another host 1MSG gave you, for example `https://sandbox.stage.1msg.io`. |
+| Channel ID | Leave empty for a production key that already belongs to one channel. Fill it for a sandbox channel and for an older key.                                                                   |
 
 Sandbox does not read the `Authorization` header. For a sandbox host the node sends the same API key as the `token` query parameter, and only to that host. Production keeps the key in the header.
 
@@ -81,11 +81,11 @@ If delivery status is selected, the node turns on `ackNotificationsOn` for the c
 
 Each matching event becomes one item. The fields you filter on stay at the top. The rest of the webhook stays in `message` or `ack`.
 
-| `event` | When | Also on the item |
-| --- | --- | --- |
-| `incoming` | Customer message | `instanceId`, `chatId`, `message` |
-| `outgoing` | Business message | `instanceId`, `chatId`, `message` |
-| `status` | Delivery receipt | `instanceId`, `chatId`, `status`, `ack` |
+| `event`    | When             | Also on the item                        |
+| ---------- | ---------------- | --------------------------------------- |
+| `incoming` | Customer message | `instanceId`, `chatId`, `message`       |
+| `outgoing` | Business message | `instanceId`, `chatId`, `message`       |
+| `status`   | Delivery receipt | `instanceId`, `chatId`, `status`, `ack` |
 
 Message id, direction, type, and text are inside `message`. A delivery receipt’s id is inside `ack`.
 

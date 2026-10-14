@@ -8,7 +8,7 @@ import type {
 } from 'n8n-workflow';
 
 import { channelRequestUrl } from '../utils/api-path';
-import { resolveBaseUrl, resolveInstanceId, sandboxQuery, stripAuthPrefix } from '../utils/channel';
+import { resolveChannelCredentials, sandboxQuery } from '../utils/channel';
 
 export class OneMsgApi implements ICredentialType {
 	name = 'oneMsgApi';
@@ -74,13 +74,12 @@ export class OneMsgApi implements ICredentialType {
 		},
 	];
 
+	/** Apply normalized channel authentication while preserving request options and sandbox token compatibility. */
 	async authenticate(
 		credentials: ICredentialDataDecryptedObject,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
-		const apiKey = stripAuthPrefix(String(credentials.apiKey || ''));
-		const baseUrl = resolveBaseUrl(String(credentials.environment || ''), String(credentials.baseUrl || ''));
-		const instanceId = resolveInstanceId(apiKey, String(credentials.channelId || ''));
+		const { apiKey, baseUrl, instanceId } = resolveChannelCredentials(credentials);
 		const headers = {
 			...requestOptions.headers,
 			Authorization: `Bearer ${apiKey}`,

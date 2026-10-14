@@ -1,0 +1,13 @@
+# Merge readiness — 2026-10-15
+
+The PR branch includes main `2095313ddf94764cad0eb919a153259ff5213c85`. This is a merge into the PR branch, not a merge of the PR into main.
+
+Validation: frozen application and quality installs, 18 offline tests, production build and packed-entrypoint smoke. All gates were executed individually so an early quality failure could not skip the application checks. The complete quality and consumer matrix passed on `bb283932aac4eba7f4acb3843fcf74d8a1d18436`; CI independently verifies subsequent heads.
+
+The internal isSandboxHost and normalizeBaseUrl helpers no longer export unused symbols. Package entrypoints and n8n registrations remain unchanged. Fresh consumer installation is checked on Node 20 with n8n-workflow 1.117.1 and on Node 22/24 with the latest workflow peer; the latest peer transitively requires Node 22.
+
+Existing initial-adoption evidence was replayed against this main commit. Original owners and expiry dates remain intact; allowance values and clone ceilings were not increased. Obsolete allowances were retired. The remaining violations were not bootstrapped or suppressed.
+
+This records code and package validation under the agreed acceptance of remaining quality debt. It does not assert that all of 1MSG-156 is complete or that a live platform deployment was tested. No release, deployment or live API call was run.
+
+Credential URL/key normalization is now shared by the credential adapter and custom request validation. The duplicate introduced by main was removed without changing request or authentication semantics.

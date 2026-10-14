@@ -17,6 +17,7 @@ export function extractMessage(body: unknown): string {
 	return '';
 }
 
+/** Convert known transport and validation failures to actionable node messages while retaining unknown diagnostic text. */
 export function humanizeMessage(message: string, statusCode?: number): string {
 	const text = message.trim();
 	const lower = text.toLowerCase();
@@ -48,7 +49,10 @@ export function humanizeMessage(message: string, statusCode?: number): string {
 	if (lower.includes('template is not defined')) {
 		return '1MSG did not send the template because its name, language, or namespace is missing. Refresh the template list and choose the template again.';
 	}
-	if (lower.includes('template') && (lower.includes('not found') || lower.includes('does not exist'))) {
+	if (
+		lower.includes('template') &&
+		(lower.includes('not found') || lower.includes('does not exist'))
+	) {
 		return `That template is not available on this channel. Pick an approved template from the list. (${text})`;
 	}
 	if (statusCode === 404) {
@@ -91,9 +95,16 @@ export function messageFromFailure(error: unknown): string {
 		cause?: { response?: { body?: unknown }; statusCode?: unknown; message?: unknown };
 	};
 	const body = record.response?.body ?? record.cause?.response?.body ?? record.body ?? record.error;
-	const extracted = extractMessage(body) || textFromUnknown(record.message) || textFromUnknown(record.cause?.message);
+	const extracted =
+		extractMessage(body) ||
+		textFromUnknown(record.message) ||
+		textFromUnknown(record.cause?.message);
 	const status = Number(
-		record.statusCode || record.httpCode || record.status || record.response?.statusCode || record.cause?.statusCode,
+		record.statusCode ||
+			record.httpCode ||
+			record.status ||
+			record.response?.statusCode ||
+			record.cause?.statusCode,
 	);
 	return humanizeMessage(extracted, Number.isFinite(status) && status > 0 ? status : undefined);
 }

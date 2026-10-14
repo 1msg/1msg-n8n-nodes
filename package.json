@@ -7,7 +7,13 @@
 		"access": "public"
 	},
 	"homepage": "https://1msg.io",
-	"keywords": ["n8n-community-node-package", "waba", "whatsapp", "whatsapp-business-api", "1msg"],
+	"keywords": [
+		"n8n-community-node-package",
+		"waba",
+		"whatsapp",
+		"whatsapp-business-api",
+		"1msg"
+	],
 	"author": {
 		"name": "1MSG",
 		"email": "1msg.company@gmail.com"
@@ -24,13 +30,34 @@
 		"lint:fix": "n8n-node lint --fix",
 		"release": "n8n-node release",
 		"prepublishOnly": "n8n-node prerelease",
-		"test": "npm run build && node --test test/*.test.js"
+		"test": "npm run build && node --test test/*.test.js",
+		"typecheck": "tsc -p tsconfig.quality.json",
+		"lint:static": "node tools/quality/node_modules/eslint/bin/eslint.js -c eslint.static.config.mjs . --max-warnings=0",
+		"lint:typed": "node tools/quality/node_modules/eslint/bin/eslint.js -c eslint.typed.config.mjs . --max-warnings=0",
+		"lint:unused:production": "node tools/quality/run.mjs unused-production",
+		"lint:unused:full": "node tools/quality/run.mjs unused-full",
+		"lint:duplicates": "node tools/quality/run.mjs duplicates",
+		"quality:guards": "node tools/quality/run.mjs guards",
+		"lint:arch": "node tools/quality/node_modules/dependency-cruiser/bin/dependency-cruiser.mjs --config .dependency-cruiser.cjs nodes utils credentials",
+		"test:quality": "node scripts/quality-negative.mjs nodes && node --test --test-concurrency=1 scripts/quality-hook.test.mjs scripts/quality-extensions.test.mjs",
+		"lint:complexity": "node tools/quality/run.mjs report --kind eslint --name complexity -- node tools/quality/node_modules/eslint/bin/eslint.js -c eslint.complexity.config.mjs . --format json",
+		"lint:duplicates:full": "node tools/quality/run.mjs duplicates-full",
+		"lint:framework": "n8n-node lint",
+		"format:check": "node tools/quality/node_modules/prettier/bin/prettier.cjs --check .",
+		"format": "node tools/quality/node_modules/prettier/bin/prettier.cjs --write .",
+		"test:pack": "node scripts/pack-smoke.mjs",
+		"test:preset": "node --test tools/quality/test/*.test.mjs",
+		"hooks:install": "node tools/quality/node_modules/husky/bin.js"
 	},
-	"files": ["dist"],
+	"files": [
+		"dist"
+	],
 	"n8n": {
 		"n8nNodesApiVersion": 1,
 		"strict": true,
-		"credentials": ["dist/credentials/OneMsgApi.credentials.js"],
+		"credentials": [
+			"dist/credentials/OneMsgApi.credentials.js"
+		],
 		"nodes": [
 			"dist/nodes/Waba/Waba.node.js",
 			"dist/nodes/WabaTrigger/WabaTrigger.node.js"
@@ -45,5 +72,20 @@
 	},
 	"peerDependencies": {
 		"n8n-workflow": "*"
+	},
+	"packageManager": "npm@11.17.0",
+	"lint-staged": {
+		"*.{js,jsx,mjs,cjs}": [
+			"node tools/quality/staged.mjs --config eslint.static.config.mjs --",
+			"node tools/quality/node_modules/prettier/bin/prettier.cjs --write",
+			"node tools/quality/node_modules/eslint/bin/eslint.js --config eslint.static.config.mjs --max-warnings=0 --no-warn-ignored"
+		],
+		"*.{ts,tsx,mts,cts}": [
+			"node tools/quality/staged.mjs --config eslint.static.config.mjs --",
+			"node tools/quality/node_modules/prettier/bin/prettier.cjs --write",
+			"node tools/quality/node_modules/eslint/bin/eslint.js --config eslint.static.config.mjs --max-warnings=0 --no-warn-ignored",
+			"node tools/quality/node_modules/eslint/bin/eslint.js --config eslint.typed.config.mjs --max-warnings=0 --no-warn-ignored"
+		],
+		"*.{json,md,yml,yaml}": "node tools/quality/node_modules/prettier/bin/prettier.cjs --write"
 	}
 }

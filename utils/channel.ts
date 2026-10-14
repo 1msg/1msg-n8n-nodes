@@ -9,10 +9,11 @@ export function stripAuthPrefix(raw: string): string {
 	return raw.replace(/^(Bearer|Basic)\s+/i, '').trim();
 }
 
+/** Decode the JWT payload locally to infer channel metadata; malformed or non-object payloads return null without authentication claims. */
 export function decodeJwtPayload(token: string): Record<string, unknown> | null {
 	const stripped = stripAuthPrefix(token);
 	const parts = stripped.split('.');
-	if (parts.length !== 3) return null;
+	if (parts.length !== 3 || parts[1] === undefined) return null;
 	try {
 		const padded = parts[1].replace(/-/g, '+').replace(/_/g, '/');
 		const json = Buffer.from(padded, 'base64').toString('utf8');
@@ -49,7 +50,8 @@ export function resolveInstanceId(apiKey: string, channelId?: string): string {
 	);
 }
 
-export function normalizeBaseUrl(baseUrl: string): string {
+/** Normalize the credential URL and reject unsupported schemes before transport construction. */
+function normalizeBaseUrl(baseUrl: string): string {
 	const value = (baseUrl || 'https://api.1msg.io').trim().replace(/\/$/, '');
 	if (!/^https?:\/\//i.test(value)) {
 		throw new ChannelKeyError(
@@ -63,7 +65,10 @@ export function normalizeBaseUrl(baseUrl: string): string {
  * Production and Custom use the host stored on the credential.
  * A credential saved before the API URL field existed has no environment, so its Base URL is kept.
  */
-export function resolveBaseUrl(environment: string | undefined, baseUrl: string | undefined): string {
+export function resolveBaseUrl(
+	environment: string | undefined,
+	baseUrl: string | undefined,
+): string {
 	const env = (environment || '').trim().toLowerCase();
 	if (env === 'sandbox') return 'https://sandbox.1msg.io';
 	if (env === 'custom') return normalizeBaseUrl(baseUrl || '');
@@ -71,7 +76,8 @@ export function resolveBaseUrl(environment: string | undefined, baseUrl: string 
 	return normalizeBaseUrl(baseUrl || '');
 }
 
-export function isSandboxHost(value: string): boolean {
+/** Recognize first-party sandbox hosts; malformed or unrelated URLs never receive sandbox query credentials. */
+function isSandboxHost(value: string): boolean {
 	const raw = value.trim();
 	if (!raw) return false;
 	try {
@@ -87,4 +93,22 @@ export function sandboxQuery(baseUrl: string, apiKey: string): Record<string, st
 	const key = stripAuthPrefix(apiKey);
 	if (!key || !isSandboxHost(baseUrl)) return {};
 	return { token: key };
+}
+
+/** Resolve one credential snapshot consistently for authentication and custom-request URL validation; invalid channels or URL schemes fail before I/O. */
+export function resolveChannelCredentials(credentials: Record<string, unknown>): {
+	apiKey: string;
+	baseUrl: string;
+	instanceId: string;
+} {
+	const apiKey = stripAuthPrefix(String(credentials.apiKey || ''));
+	const baseUrl = resolveBaseUrl(
+		String(credentials.environment || ''),
+		String(credentials.baseUrl || ''),
+	);
+	return {
+		apiKey,
+		baseUrl,
+		instanceId: resolveInstanceId(apiKey, String(credentials.channelId || '')),
+	};
 }

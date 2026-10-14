@@ -4,13 +4,8 @@ import type {
 	ResourceMapperFields,
 } from 'n8n-workflow';
 
+import { findTemplate, templateFields, templateKey, templateLabel } from '../../utils/templates';
 import { listApprovedTemplates } from './listTemplates';
-import {
-	findTemplate,
-	templateFields,
-	templateKey,
-	templateLabel,
-} from '../../utils/templates';
 
 function selectedTemplateKey(value: unknown): string {
 	if (typeof value === 'string') return value;
@@ -36,7 +31,9 @@ export async function searchTemplates(
 	return { results };
 }
 
-export async function getTemplateVariables(this: ILoadOptionsFunctions): Promise<ResourceMapperFields> {
+export async function getTemplateVariables(
+	this: ILoadOptionsFunctions,
+): Promise<ResourceMapperFields> {
 	const key = selectedTemplateKey(this.getCurrentNodeParameter('template'));
 	if (!key.trim()) {
 		return {
