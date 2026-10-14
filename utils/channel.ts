@@ -50,7 +50,8 @@ export function resolveInstanceId(apiKey: string, channelId?: string): string {
 	);
 }
 
-export function normalizeBaseUrl(baseUrl: string): string {
+/** Normalize the credential URL and reject unsupported schemes before transport construction. */
+function normalizeBaseUrl(baseUrl: string): string {
 	const value = (baseUrl || 'https://api.1msg.io').trim().replace(/\/$/, '');
 	if (!/^https?:\/\//i.test(value)) {
 		throw new ChannelKeyError(
@@ -75,7 +76,8 @@ export function resolveBaseUrl(
 	return normalizeBaseUrl(baseUrl || '');
 }
 
-export function isSandboxHost(value: string): boolean {
+/** Recognize first-party sandbox hosts; malformed or unrelated URLs never receive sandbox query credentials. */
+function isSandboxHost(value: string): boolean {
 	const raw = value.trim();
 	if (!raw) return false;
 	try {

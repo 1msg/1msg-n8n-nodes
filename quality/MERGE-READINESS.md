@@ -4,7 +4,7 @@ The PR branch includes main `2095313ddf94764cad0eb919a153259ff5213c85`. This is 
 
 Validation: frozen application and quality installs, 18 offline tests, production build and packed-entrypoint smoke. All gates were executed individually so an early quality failure could not skip the application checks. Functional checks pass; the required quality status remains red for the findings below.
 
-Knip reports the isSandboxHost and normalizeBaseUrl exports added by the new main as unused in both graphs. These findings remain errors.
+The internal isSandboxHost and normalizeBaseUrl helpers no longer export unused symbols. Package entrypoints and n8n registrations remain unchanged. Fresh consumer installation is checked on Node 20 with n8n-workflow 1.117.1 and on Node 22/24 with the latest workflow peer; the latest peer transitively requires Node 22.
 
 Existing initial-adoption evidence was replayed against this main commit. Original owners and expiry dates remain intact; allowance values and clone ceilings were not increased. Obsolete allowances were retired. The remaining violations were not bootstrapped or suppressed.
 
