@@ -43,9 +43,29 @@ jobs:
           name: quality-reports
           path: quality/reports/
           if-no-files-found: error
+  package-consumer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22', '24']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - name: Pack the actual distributable
+        run: mkdir -p "$RUNNER_TEMP/packed" && npm pack --ignore-scripts --pack-destination "$RUNNER_TEMP/packed"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: bash scripts/consumer-smoke.sh "$RUNNER_TEMP"/packed/*.tgz '@1msg/n8n-nodes-1msg'
   quality-required:
     if: always()
-    needs: [checks]
+    needs: [checks, package-consumer]
     runs-on: ubuntu-24.04
     steps:
       - env:

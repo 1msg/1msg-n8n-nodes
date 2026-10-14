@@ -73,9 +73,6 @@
 	"peerDependencies": {
 		"n8n-workflow": "*"
 	},
-	"engines": {
-		"node": "24.x"
-	},
 	"packageManager": "npm@11.17.0",
 	"lint-staged": {
 		"*.{js,jsx,mjs,cjs}": [
