@@ -20,7 +20,10 @@ test('recipient accepts a phone in everyday formats', () => {
 
 test('recipient detects BSUID, username, and chat ids', () => {
 	assert.deepEqual(recipientBody('AB.954395553956302'), { bsuid: 'AB.954395553956302' });
+	assert.deepEqual(recipientBody('US.13491208655302741918'), { bsuid: 'US.13491208655302741918' });
 	assert.deepEqual(recipientBody('@shop'), { username: 'shop' });
+	assert.deepEqual(recipientBody('john.doe'), { username: 'john.doe' });
+	assert.deepEqual(recipientBody('@john.doe'), { username: 'john.doe' });
 	assert.deepEqual(recipientBody('14155552671@c.us'), { chatId: '14155552671@c.us' });
 	assert.deepEqual(recipientBody('AB.1@lid'), { chatId: 'AB.1@lid' });
 });
@@ -38,14 +41,16 @@ test('channel id comes from the API key', () => {
 	assert.throws(() => resolveInstanceId('plain-key'), /not tied to a channel/);
 });
 
-test('API URL selects production, sandbox, or a saved host', () => {
+test('API URL is production or sandbox only', () => {
 	assert.equal(resolveBaseUrl('production', 'https://eu.1msg.io'), 'https://api.1msg.io');
 	assert.equal(resolveBaseUrl('sandbox', ''), 'https://sandbox.1msg.io');
-	assert.equal(resolveBaseUrl('custom', 'https://sandbox.stage.1msg.io/'), 'https://sandbox.stage.1msg.io');
-	assert.equal(resolveBaseUrl('', 'https://eu.1msg.io'), 'https://eu.1msg.io');
+	assert.equal(resolveBaseUrl('', ''), 'https://api.1msg.io');
+	assert.equal(resolveBaseUrl('', 'https://sandbox.1msg.io'), 'https://sandbox.1msg.io');
+	assert.throws(() => resolveBaseUrl('custom', 'https://sandbox.stage.1msg.io/'), /not allowed/);
+	assert.throws(() => resolveBaseUrl('', 'https://eu.1msg.io'), /not allowed/);
 	assert.deepEqual(sandboxQuery('https://api.1msg.io', 'TKNabc'), {});
 	assert.deepEqual(sandboxQuery('https://sandbox.1msg.io', 'Bearer TKNabc'), { token: 'TKNabc' });
-	assert.deepEqual(sandboxQuery('https://sandbox.stage.1msg.io/ch/status', 'TKNabc'), { token: 'TKNabc' });
+	assert.deepEqual(sandboxQuery('https://sandbox.stage.1msg.io/ch/status', 'TKNabc'), {});
 });
 
 test('package description names the official WhatsApp API', () => {
@@ -76,8 +81,10 @@ test('API path stays on the 1MSG host and does not repeat the channel', () => {
 });
 
 test('errors explain a closed 24-hour window and a rejected key', () => {
-	assert.match(humanizeMessage('Dialog window is closed', 400), /Send Template/);
-	assert.match(humanizeMessage('invalid token', 401), /API key was rejected/);
+	assert.match(humanizeMessage('Dialog window is closed', 400), /Send a template/);
+	assert.match(humanizeMessage('invalid token', 401), /\[401\].*API key was rejected/);
+	assert.doesNotMatch(humanizeMessage('Unknown channel', 404), /Check the path/);
+	assert.match(humanizeMessage('', 404, 'api'), /Check the path/);
 	assert.throws(() => assertSendSucceeded({ sent: false, message: 'empty body' }), /empty body/);
 	assert.doesNotThrow(() => assertSendSucceeded({ sent: true, id: 'wamid.1' }));
 });
@@ -408,8 +415,8 @@ test('recipient shows on the message form and on every template send', () => {
 		fields
 			.filter((field) => field.name === name)
 			.some((field) => displayParameter(values, field, null, null));
-	assert.equal(shown('recipient', { operation: 'sendMessage', fillMode: 'form' }), true);
-	assert.equal(shown('recipient', { operation: 'sendMessage', fillMode: 'custom' }), false);
+	assert.equal(shown('recipient', { operation: 'sendMessage' }), true);
+	assert.equal(shown('recipient', { operation: 'sendMessage', fillMode: 'custom' }), true);
 	assert.equal(shown('templateRecipient', { operation: 'sendTemplate', fillMode: 'form' }), true);
 	assert.equal(shown('templateRecipient', { operation: 'sendTemplate', fillMode: 'custom' }), true);
 	assert.equal(shown('recipient', { operation: 'sendTemplate', fillMode: 'form' }), false);
@@ -422,7 +429,7 @@ test('API failures keep the readable 1MSG message', () => {
 			statusCode: 400,
 			error: { message: 'Dialog window is closed' },
 		}),
-		/Send Template/,
+		/Send a template/,
 	);
 	assert.match(
 		messageFromFailure({ message: '400 - {"message":"template is not defined"}' }),

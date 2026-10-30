@@ -17,15 +17,19 @@ export function extractMessage(body: unknown): string {
 	return '';
 }
 
-export function humanizeMessage(message: string, statusCode?: number): string {
+export function humanizeMessage(message: string, statusCode?: number, scope?: string): string {
 	const text = message.trim();
 	const lower = text.toLowerCase();
+	const finish = (value: string) => (statusCode ? `[${statusCode}] ${value}` : value);
 
 	if (statusCode === 401 || lower.includes('invalid token') || lower === 'unauthorized') {
-		return 'The API key was rejected. Open the 1MSG credential and paste the channel API key again.';
+		return finish('The API key was rejected. Open the 1MSG credential and paste the channel API key again.');
+	}
+	if (statusCode === 403) {
+		return finish(text ? `This API key cannot access that channel. (${text})` : 'This API key cannot access that channel.');
 	}
 	if (statusCode === 429 || lower.includes('too many request') || lower.includes('rate limit')) {
-		return '1MSG is limiting requests for this channel. Wait a moment, then run the step again.';
+		return finish('1MSG is limiting requests for this channel. Wait a moment, then run the step again.');
 	}
 	if (
 		lower.includes('outside the allowed window') ||
@@ -34,30 +38,46 @@ export function humanizeMessage(message: string, statusCode?: number): string {
 		lower.includes('131047')
 	) {
 		const detail = text ? ` (${text})` : '';
-		return `WhatsApp did not accept this free-form message because the 24-hour conversation window is closed. Use Send Template, or wait until this person writes to you again.${detail}`;
+		return finish(
+			`WhatsApp did not accept this free-form message because the 24-hour conversation window is closed. Use Send a template, or wait until this person writes to you again.${detail}`,
+		);
 	}
 	if (lower.includes('username is not found') || lower.includes('not linked with bsuid')) {
-		return `This username is not linked to a WhatsApp user on this channel yet. Use the phone number or BSUID from an incoming message. (${text})`;
+		return finish(
+			`This username is not linked to a WhatsApp user on this channel yet. Use the phone number or BSUID from an incoming message. (${text})`,
+		);
 	}
 	if (lower.includes('bsuid routing is disabled')) {
-		return `Sending by BSUID is turned off for this channel. Use a phone number, or ask 1MSG to enable BSUID routing. (${text})`;
+		return finish(`Sending by BSUID is turned off for this channel. Use a phone number, or ask 1MSG to enable BSUID routing. (${text})`);
 	}
 	if (lower.includes('username routing is disabled')) {
-		return `Sending by username is turned off for this channel. Use a phone number or BSUID. (${text})`;
+		return finish(`Sending by username is turned off for this channel. Use a phone number or BSUID. (${text})`);
 	}
 	if (lower.includes('template is not defined')) {
-		return '1MSG did not send the template because its name, language, or namespace is missing. Refresh the template list and choose the template again.';
+		return finish(
+			'1MSG did not send the template because its name, language, or namespace is missing. Refresh the template list and choose the template again.',
+		);
 	}
 	if (lower.includes('template') && (lower.includes('not found') || lower.includes('does not exist'))) {
-		return `That template is not available on this channel. Pick an approved template from the list. (${text})`;
+		return finish(`That template is not available on this channel. Pick an approved template from the list. (${text})`);
 	}
 	if (statusCode === 404) {
-		return text
-			? `1MSG could not find that method. Check the path. (${text})`
-			: '1MSG could not find that method. Check the path, for example templates or sendMessage.';
+		if (scope === 'api') {
+			return finish(
+				text
+					? `1MSG could not find that method. Check the path. (${text})`
+					: '1MSG could not find that method. Check the path, for example templates or sendMessage.',
+			);
+		}
+		return finish(
+			text
+				? `1MSG could not find that. (${text})`
+				: '1MSG could not find that. Check the channel, the recipient, or the template.',
+		);
 	}
-	if (text) return text;
-	if (statusCode) return `1MSG returned HTTP ${statusCode}.`;
+	if (text) return finish(text);
+	if (statusCode && statusCode >= 500) return finish('1MSG could not complete the request. Try again in a moment.');
+	if (statusCode) return finish('1MSG rejected the request.');
 	return '1MSG returned an error.';
 }
 

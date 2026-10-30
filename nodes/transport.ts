@@ -19,6 +19,7 @@ export async function oneMsgRequest(
 	path: string,
 	body?: IDataObject | unknown[] | undefined,
 	qs?: IDataObject,
+	scope?: string,
 ): Promise<unknown> {
 	const credentials = await this.getCredentials('oneMsgApi');
 	const apiKey = stripAuthPrefix(String(credentials.apiKey || ''));
@@ -61,7 +62,7 @@ export async function oneMsgRequest(
 	if (unwrapped.statusCode !== undefined && unwrapped.statusCode >= 400) {
 		throw new NodeOperationError(
 			this.getNode(),
-			humanizeMessage(extractMessage(unwrapped.body), unwrapped.statusCode),
+			humanizeMessage(extractMessage(unwrapped.body), unwrapped.statusCode, scope),
 		);
 	}
 	return unwrapped.body;

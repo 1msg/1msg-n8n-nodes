@@ -1,6 +1,5 @@
 const PHONE_MIN = 6;
 const PHONE_MAX = 15;
-const BSUID_RE = /^[A-Za-z0-9_-]{2,16}\.[A-Za-z0-9._:-]+$/;
 const USERNAME_RE = /^[A-Za-z0-9._-]{1,128}$/;
 const CHAT_SUFFIXES = ['@c.us', '@lid', '@username', '@g.us', '@broadcast'];
 
@@ -18,15 +17,9 @@ export class RecipientError extends Error {
 	}
 }
 
-function normalizeBsuid(value: string): string | null {
-	const normalized = value.endsWith('@lid') ? value.slice(0, -4) : value;
-	if (!BSUID_RE.test(normalized)) return null;
-	return normalized;
-}
-
 /**
- * One recipient field. Phone, BSUID, username, or a chat id from a webhook.
- * Same detection order as the 1MSG API: BSUID, then phone, then username.
+ * One recipient field. Phone, then a BSUID such as US.13491208655302741918, then a username.
+ * A value like john.doe is a username. Usernames may also start with @.
  */
 export function recipientBody(raw: string): RecipientBody {
 	const value = String(raw ?? '').trim();
@@ -50,9 +43,6 @@ export function recipientBody(raw: string): RecipientBody {
 		);
 	}
 
-	const bsuid = normalizeBsuid(value);
-	if (bsuid) return { bsuid };
-
 	const phoneDigits = value.replace(/[\s()\-+.]/g, '');
 	if (/^\d+$/.test(phoneDigits)) {
 		if (phoneDigits.length < PHONE_MIN || phoneDigits.length > PHONE_MAX) {
@@ -63,12 +53,11 @@ export function recipientBody(raw: string): RecipientBody {
 		return { phone: phoneDigits };
 	}
 
-	const username = value.startsWith('@') ? value.slice(1) : value;
-	if (username && USERNAME_RE.test(username)) {
-		return { username };
-	}
+	if (/^[A-Za-z]{2}\.\d{8,}$/.test(value)) return { bsuid: value };
+
+	if (USERNAME_RE.test(value)) return { username: value };
 
 	throw new RecipientError(
-		'Could not tell if this recipient is a phone, BSUID, or username. Use a phone with country code, a BSUID such as AB.123, or a username.',
+		'Could not tell if this recipient is a phone, BSUID, or username. Use a phone with country code, a BSUID such as US.13491208655302741918, or a username such as @john.doe.',
 	);
 }

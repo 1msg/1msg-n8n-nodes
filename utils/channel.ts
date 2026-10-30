@@ -45,38 +45,29 @@ export function resolveInstanceId(apiKey: string, channelId?: string): string {
 	}
 
 	throw new ChannelKeyError(
-		'This API key is not tied to a channel. Paste the channel API key from 1MSG channel settings, or fill in Channel ID. A sandbox channel needs Channel ID, and API URL set to Sandbox.',
+		'This API key is not tied to a channel. Paste the channel API key from 1MSG channel settings, or fill in Channel ID. A sandbox channel needs Channel ID, and Environment set to Sandbox.',
 	);
 }
 
-export function normalizeBaseUrl(baseUrl: string): string {
-	const value = (baseUrl || 'https://api.1msg.io').trim().replace(/\/$/, '');
-	if (!/^https?:\/\//i.test(value)) {
-		throw new ChannelKeyError(
-			'API URL must start with https://. Production is https://api.1msg.io. Sandbox is https://sandbox.1msg.io.',
-		);
-	}
-	return value;
-}
-
-/**
- * Production and Custom use the host stored on the credential.
- * A credential saved before the API URL field existed has no environment, so its Base URL is kept.
- */
-export function resolveBaseUrl(environment: string | undefined, baseUrl: string | undefined): string {
+export function resolveBaseUrl(environment: string | undefined, baseUrl?: string): string {
 	const env = (environment || '').trim().toLowerCase();
 	if (env === 'sandbox') return 'https://sandbox.1msg.io';
-	if (env === 'custom') return normalizeBaseUrl(baseUrl || '');
 	if (env === 'production') return 'https://api.1msg.io';
-	return normalizeBaseUrl(baseUrl || '');
+	if (!env) {
+		const saved = (baseUrl || '').trim().replace(/\/$/, '');
+		if (!saved || saved === 'https://api.1msg.io') return 'https://api.1msg.io';
+		if (saved === 'https://sandbox.1msg.io') return 'https://sandbox.1msg.io';
+	}
+	throw new ChannelKeyError(
+		'Choose Production (https://api.1msg.io) or Sandbox (https://sandbox.1msg.io). Other hosts are not allowed.',
+	);
 }
 
 export function isSandboxHost(value: string): boolean {
 	const raw = value.trim();
 	if (!raw) return false;
 	try {
-		const host = new URL(raw.includes('://') ? raw : `https://${raw}`).hostname.toLowerCase();
-		return host === 'sandbox.1msg.io' || (host.startsWith('sandbox.') && host.endsWith('.1msg.io'));
+		return new URL(raw.includes('://') ? raw : `https://${raw}`).hostname.toLowerCase() === 'sandbox.1msg.io';
 	} catch {
 		return false;
 	}

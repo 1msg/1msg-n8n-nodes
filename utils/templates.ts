@@ -527,6 +527,64 @@ export function templateLabel(template: TemplateRecord): string {
 	return `${name} · ${language} · ${category}`;
 }
 
+export interface TemplateSpec {
+	name: string;
+	language: string;
+	namespace: string;
+	components: unknown;
+	id: string;
+}
+
+export function readTemplateSpec(key: string): TemplateSpec {
+	const raw = String(key || '').trim();
+	const opened = raw.slice(0, 3) === 'v1:' ? raw.slice(3).split('{#1#').join('{{') : raw;
+	const empty: TemplateSpec = { name: '', language: '', namespace: '', components: null, id: '' };
+	if (!opened) return empty;
+	if (opened.startsWith('{')) {
+		try {
+			const parsed = JSON.parse(opened) as Record<string, unknown>;
+			if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+				return {
+					name: typeof parsed.name === 'string' ? parsed.name.trim() : '',
+					language: typeof parsed.language === 'string' ? parsed.language.trim() : '',
+					namespace: typeof parsed.namespace === 'string' ? parsed.namespace.trim() : '',
+					components: Object.prototype.hasOwnProperty.call(parsed, 'components') ? parsed.components : null,
+					id: parsed.id != null && String(parsed.id).trim() ? String(parsed.id).trim() : '',
+				};
+			}
+		} catch {
+			// A mapped value that starts with { is handled as a plain name below.
+		}
+	}
+	const parts = raw.split('|');
+	if (parts.length >= 2 && parts[0].trim() && parts[1].trim() && !/\s/.test(parts[1])) {
+		return {
+			name: parts[0].trim(),
+			language: parts[1].trim(),
+			namespace: parts.length > 2 ? parts.slice(2).join('|').trim() : '',
+			components: null,
+			id: '',
+		};
+	}
+	return { name: '', language: '', namespace: '', components: null, id: raw };
+}
+
+export function packTemplateValue(template: TemplateRecord): string {
+	const packed: Record<string, unknown> = {
+		id: template.id != null && String(template.id) ? String(template.id) : '',
+		name: template.name || '',
+		language: languageCode(template.language),
+		namespace: readNamespace(template),
+	};
+	if (template.components != null) packed.components = template.components;
+	let json = JSON.stringify(packed);
+	if (`v1:${json}`.length > 6000) {
+		delete packed.components;
+		json = JSON.stringify(packed);
+	}
+	return `v1:${json.split('{{').join('{#1#')}`;
+}
+
 export function isApproved(template: TemplateRecord): boolean {
 	return upper(template.status) === 'APPROVED';
 }
@@ -536,18 +594,42 @@ export function findTemplate(templates: TemplateRecord[], key: string): Template
 	if (!trimmed) {
 		throw new TemplateError('Choose a template, or enter its name or ID.');
 	}
-	const byKey = templates.find((template) => templateKey(template) === trimmed);
+	const spec = readTemplateSpec(trimmed);
+	if (spec.id) {
+		const byPackedId = templates.find((template) => template.id && String(template.id) === spec.id);
+		if (byPackedId) return byPackedId;
+	}
+	if (spec.name && spec.language) {
+		const exact = templates.find(
+			(template) => template.name === spec.name && languageCode(template.language) === spec.language,
+		);
+		if (exact) return exact;
+	}
+	const lookup = spec.name ? '' : trimmed;
+	const byKey = lookup ? templates.find((template) => templateKey(template) === lookup) : undefined;
 	if (byKey) return byKey;
-	const byId = templates.find((template) => template.id && String(template.id) === trimmed);
+	const byId = lookup ? templates.find((template) => template.id && String(template.id) === lookup) : undefined;
 	if (byId) return byId;
-	const byName = templates.filter(
-		(template) => template.name === trimmed || `${template.name}|${languageCode(template.language)}` === trimmed,
-	);
+	const byName = lookup
+		? templates.filter(
+				(template) => template.name === lookup || `${template.name}|${languageCode(template.language)}` === lookup,
+			)
+		: [];
 	if (byName.length === 1) return byName[0];
 	if (byName.length > 1) {
 		throw new TemplateError(
-			`Several approved templates are named “${trimmed}”. Pick one from the list so the language is clear.`,
+			`Several approved templates are named “${lookup}”. Pick one from the list so the language is clear.`,
 		);
+	}
+	if (spec.name && spec.language && templates.length === 0) {
+		return {
+			id: spec.id || undefined,
+			name: spec.name,
+			language: spec.language,
+			namespace: spec.namespace || undefined,
+			components: spec.components ?? undefined,
+			status: 'APPROVED',
+		};
 	}
 	throw new TemplateError(
 		'No approved template matches this name or ID. Refresh the list, and check that Meta has approved the template.',

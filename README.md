@@ -24,11 +24,11 @@ Create a credential named **1MSG API**.
 
 | Field | What to paste |
 | --- | --- |
-| API Key | The channel API key from 1MSG channel settings. The channel is read from this key. |
-| API URL | **Production** is `https://api.1msg.io`. **Sandbox** is a test channel at `https://sandbox.1msg.io`. **Custom** is another host 1MSG gave you, for example `https://sandbox.stage.1msg.io`. |
+| API key | The channel API key from 1MSG channel settings. The channel is read from this key. You can paste a rotated key into the same credential. |
+| Environment | **Production** is `https://api.1msg.io`. **Sandbox** is a test channel at `https://sandbox.1msg.io`. Other hosts are not allowed. |
 | Channel ID | Leave empty for a production key that already belongs to one channel. Fill it for a sandbox channel and for an older key. |
 
-Sandbox does not read the `Authorization` header. For a sandbox host the node sends the same API key as the `token` query parameter, and only to that host. Production keeps the key in the header.
+Sandbox does not read the `Authorization` header. For `https://sandbox.1msg.io` the node sends the same API key as the `token` query parameter, and only to that host. Production keeps the key in the header.
 
 Use **Test** on the credential. A successful test reads the channel status. The same credential is used by **1MSG for WhatsApp Business API** and its trigger. The key stays in the n8n credential and is not typed again on each node. If you edit or replace the credential, existing nodes use the credential that is selected on them.
 
@@ -36,36 +36,33 @@ API reference: [docs.1msg.io](https://docs.1msg.io/). Support: [help.1msg.io](ht
 
 ## 1MSG for WhatsApp Business API
 
-### Send Message
+### Send a message
 
-**How to fill → Using the form** (the default):
-
-- **Recipient** — a phone, BSUID, or username. The node decides which one it is. Phones can include spaces, brackets, dashes, dots, and a leading `+`. A chat ID from a webhook, such as `14155552671@c.us`, also works.
+- **Recipient** — a phone, BSUID, or username. `john.doe` and `@john.doe` are a username. A BSUID looks like `US.13491208655302741918`. A chat ID from a webhook, such as `14155552671@c.us`, also works.
 - **Message** — the text. Values from earlier steps can be inserted here.
 
-A free-form message arrives only when that person wrote to the channel in the last 24 hours. Outside that window, use **Send Template**. The form says this under the message.
+A free-form message arrives only when that person wrote to the channel in the last 24 hours. Outside that window, use **Send a template**. A raw JSON body belongs in **Make an API call**.
 
-**How to fill → Custom request body** replaces the form with the full JSON body of `POST /sendMessage`. Do not put the API key in that JSON.
-
-### Send Template
+### Send a template
 
 **Using the form**:
 
-- **Recipient** — same field as Send Message.
-- **Template** — approved templates from the channel. Each row shows the name, language, and category. Use the refresh icon on the list to reload templates. Switch the field to **ID** to type a template name or ID.
-- **Variables** — appear after a template is chosen. They are labeled from the template, for example “Variable 1 in the text”, “Variable in the header”, and “Variable in the link button”. The template text is shown next to the field. A header image, video, or document asks for **File link**. A template with no variables shows no variable fields.
+- **Recipient** — same field as Send a message.
+- **Template** — approved templates from the channel. Each row stores the name, language, namespace, and components, so a later run does not download the template list again. The list itself is at most 3 pages, 300 templates. Switch the field to **ID** and enter `hello|en` when the template is mapped.
+- **Variables** — appear after a template is chosen from the list.
+- **Variable values** — one value per body placeholder when Template is mapped. Leave empty when you picked a template from the list.
 
-**Custom request body** still uses Recipient and Template, and adds **Parameters**: the WhatsApp component array, for example a body variable. Name, language, and namespace come from the selected template.
+**Parameters** uses Recipient and Template, and the WhatsApp component array. Name, language, and namespace come from the selected template. Invalid JSON is explained in plain language.
 
-### Make API Call
+### Make an API call
 
 Call any method on the same channel without typing the key again.
 
 - **Method** — GET, POST, PUT, PATCH, or DELETE.
-- **Path** — for example `templates` or `messages`. A full URL is accepted only on the credential’s 1MSG host.
-- **Query parameters** and **Request body** — JSON. Leave `{}` when you do not need them.
+- **Path** — Production is `https://api.1msg.io` and Sandbox is `https://sandbox.1msg.io`. Examples: `templates` or `sendMessage`. A full https URL is accepted only on that same host.
+- **Query string** and **Request body** — JSON. Leave `{}` when you do not need them.
 
-The API response is returned as the n8n item. An HTTP error is shown in plain language.
+The API response is returned as the n8n item. An HTTP error includes the status code, for example `[404] ...`. The “check the path” wording is used for this action.
 
 ## 1MSG for WhatsApp Business API Trigger
 

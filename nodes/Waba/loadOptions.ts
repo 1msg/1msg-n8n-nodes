@@ -7,8 +7,9 @@ import type {
 import { listApprovedTemplates } from './listTemplates';
 import {
 	findTemplate,
+	packTemplateValue,
+	readTemplateSpec,
 	templateFields,
-	templateKey,
 	templateLabel,
 } from '../../utils/templates';
 
@@ -28,10 +29,10 @@ export async function searchTemplates(
 	const query = (filter || '').trim().toLowerCase();
 	const results = templates
 		.filter((template) => !query || templateLabel(template).toLowerCase().includes(query))
-		.slice(0, 200)
+		.slice(0, 300)
 		.map((template) => ({
 			name: templateLabel(template),
-			value: templateKey(template),
+			value: packTemplateValue(template),
 		}));
 	return { results };
 }
@@ -45,18 +46,21 @@ export async function getTemplateVariables(this: ILoadOptionsFunctions): Promise
 		};
 	}
 
-	const templates = await listApprovedTemplates.call(this);
-	let template;
-	try {
-		template = findTemplate(templates, key);
-	} catch (error) {
-		return {
-			fields: [],
-			emptyFieldsNotice: error instanceof Error ? error.message : 'Template was not found.',
-		};
+	const spec = readTemplateSpec(key);
+	let components = spec.components;
+	if (components == null) {
+		const templates = await listApprovedTemplates.call(this);
+		try {
+			components = findTemplate(templates, key).components;
+		} catch (error) {
+			return {
+				fields: [],
+				emptyFieldsNotice: error instanceof Error ? error.message : 'Template was not found.',
+			};
+		}
 	}
 
-	const fields = templateFields(template.components);
+	const fields = templateFields(components);
 	if (!fields.length) {
 		return {
 			fields: [],

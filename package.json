@@ -1,13 +1,19 @@
 {
 	"name": "@1msg/n8n-nodes-1msg",
-	"version": "0.1.9",
+	"version": "0.1.10",
 	"description": "Send WhatsApp messages, receive webhooks, and make any API request using the official WhatsApp API through 1MSG.",
 	"license": "MIT",
 	"publishConfig": {
 		"access": "public"
 	},
 	"homepage": "https://1msg.io",
-	"keywords": ["n8n-community-node-package", "waba", "whatsapp", "whatsapp-business-api", "1msg"],
+	"keywords": [
+		"n8n-community-node-package",
+		"waba",
+		"whatsapp",
+		"whatsapp-business-api",
+		"1msg"
+	],
 	"author": {
 		"name": "1MSG",
 		"email": "support@1msg.io"
@@ -26,11 +32,15 @@
 		"prepublishOnly": "n8n-node prerelease",
 		"test": "npm run build && node --test test/*.test.js"
 	},
-	"files": ["dist"],
+	"files": [
+		"dist"
+	],
 	"n8n": {
 		"n8nNodesApiVersion": 1,
 		"strict": true,
-		"credentials": ["dist/credentials/OneMsgApi.credentials.js"],
+		"credentials": [
+			"dist/credentials/OneMsgApi.credentials.js"
+		],
 		"nodes": [
 			"dist/nodes/Waba/Waba.node.js",
 			"dist/nodes/WabaTrigger/WabaTrigger.node.js"

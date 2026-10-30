@@ -18,6 +18,9 @@ export function channelRequestUrl(baseUrl: string, instanceId: string, rawPath: 
 	let pathname = path;
 	let search = '';
 	if (/^https?:\/\//i.test(path)) {
+		if (/^http:\/\//i.test(path)) {
+			throw new ApiPathError('Use https:// for a full URL, or paste a path such as /templates.');
+		}
 		let url: URL | undefined;
 		try {
 			url = new URL(path);

@@ -1,4 +1,5 @@
 import type { IDataObject, IExecuteFunctions, IHttpRequestMethods } from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
 
 import { listApprovedTemplates } from './listTemplates';
 import { oneMsgRequest } from '../transport';
@@ -9,6 +10,7 @@ import { recipientBody } from '../../utils/recipient';
 import {
 	buildTemplateParams,
 	findTemplate,
+	readTemplateSpec,
 	templateSendIdentity,
 	type TemplateRecord,
 } from '../../utils/templates';
@@ -61,14 +63,6 @@ function mappingValues(raw: unknown): Record<string, string> {
 }
 
 async function sendMessage(this: IExecuteFunctions, itemIndex: number): Promise<unknown> {
-	const fillMode = this.getNodeParameter('fillMode', itemIndex) as string;
-	if (fillMode === 'custom') {
-		const body = jsonObject(this.getNodeParameter('customBody', itemIndex), 'Request body');
-		const response = await oneMsgRequest.call(this, 'POST', '/sendMessage', body);
-		assertSendSucceeded(response);
-		return response;
-	}
-
 	const recipient = recipientBody(this.getNodeParameter('recipient', itemIndex) as string);
 	const text = String(this.getNodeParameter('body', itemIndex) as string);
 	if (!text.trim()) {
@@ -82,25 +76,65 @@ async function sendMessage(this: IExecuteFunctions, itemIndex: number): Promise<
 	return response;
 }
 
+function bodyParamsFromValues(raw: string): unknown[] | string {
+	const trimmed = raw.trim();
+	if (!trimmed || trimmed === '[]') return [];
+	let values: string[];
+	if (trimmed.startsWith('[')) {
+		let parsed: unknown;
+		try {
+			parsed = JSON.parse(trimmed) as unknown;
+		} catch {
+			return 'Variable values must be a list of text values, in the same order as the template placeholders.';
+		}
+		if (!Array.isArray(parsed)) {
+			return 'Variable values must be a list of text values, in the same order as the template placeholders.';
+		}
+		values = parsed.map((item) => String(item ?? '').trim()).filter(Boolean);
+	} else {
+		values = trimmed.split(',').map((item) => item.trim()).filter(Boolean);
+	}
+	if (!values.length) return [];
+	return [{ type: 'body', parameters: values.map((text) => ({ type: 'text', text })) }];
+}
+
 async function sendTemplate(
 	this: IExecuteFunctions,
 	itemIndex: number,
-	templates: TemplateRecord[],
+	templates: TemplateRecord[] | undefined,
 ): Promise<unknown> {
 	const selected = this.getNodeParameter('template', itemIndex) as { value?: string };
-	const template = findTemplate(templates, String(selected?.value || ''));
+	const key = String(selected?.value || '');
+	const spec = readTemplateSpec(key);
+	const fillMode = this.getNodeParameter('fillMode', itemIndex, 'form') as string;
+	const mapped =
+		fillMode === 'form' ? mappingValues(this.getNodeParameter('variables', itemIndex, {})) : {};
+	const variableText =
+		fillMode === 'form' ? String(this.getNodeParameter('bodyVariables', itemIndex, '') || '') : '';
+	const selfContained = Boolean(
+		spec.name &&
+			spec.language &&
+			spec.namespace &&
+			(spec.components != null || fillMode === 'custom' || variableText.trim()),
+	);
+	const template = selfContained ? findTemplate([], key) : findTemplate(templates || [], key);
+	const siblings = selfContained ? [] : templates || [];
 	const recipient = recipientBody(this.getNodeParameter('templateRecipient', itemIndex) as string);
-	const fillMode = this.getNodeParameter('fillMode', itemIndex) as string;
-	const params =
-		fillMode === 'custom'
-			? jsonArray(this.getNodeParameter('customParams', itemIndex), 'Parameters')
-			: buildTemplateParams(
-					template.components,
-					mappingValues(this.getNodeParameter('variables', itemIndex, {})),
-				);
+	let params: unknown[] = [];
+	if (fillMode === 'custom') {
+		params = jsonArray(this.getNodeParameter('customParams', itemIndex), 'Parameters');
+	} else if (Object.keys(mapped).length && template.components != null) {
+		params = buildTemplateParams(template.components, mapped);
+	} else if (variableText.trim()) {
+		const parsed = bodyParamsFromValues(variableText);
+		if (typeof parsed === 'string') throw new NodeOperationError(this.getNode(), parsed);
+		params = parsed;
+	} else if (template.components != null) {
+		params = buildTemplateParams(template.components, mapped);
+	}
 
 	const payload: IDataObject = {
-		...templateSendIdentity(template, templates),
+		...templateSendIdentity(template, siblings),
 		...recipient,
 	};
 	if (params.length) payload.params = params;
@@ -138,6 +172,7 @@ async function apiCall(this: IExecuteFunctions, itemIndex: number): Promise<unkn
 		path,
 		body,
 		Object.keys(query).length ? query : undefined,
+		'api',
 	);
 }
 
@@ -147,8 +182,19 @@ export function bindWabaExecute(): (this: IExecuteFunctions, itemIndex: number) 
 		const operation = this.getNodeParameter('operation', itemIndex) as string;
 		if (operation === 'sendMessage') return await sendMessage.call(this, itemIndex);
 		if (operation === 'sendTemplate') {
-			if (!approved) approved = await listApprovedTemplates.call(this);
-			return await sendTemplate.call(this, itemIndex, approved);
+			const selected = this.getNodeParameter('template', itemIndex) as { value?: string };
+			const spec = readTemplateSpec(String(selected?.value || ''));
+			const fillMode = this.getNodeParameter('fillMode', itemIndex, 'form') as string;
+			const variableText =
+				fillMode === 'form' ? String(this.getNodeParameter('bodyVariables', itemIndex, '') || '') : '';
+			const selfContained = Boolean(
+				spec.name &&
+					spec.language &&
+					spec.namespace &&
+					(spec.components != null || fillMode === 'custom' || variableText.trim()),
+			);
+			if (!selfContained && !approved) approved = await listApprovedTemplates.call(this);
+			return await sendTemplate.call(this, itemIndex, selfContained ? undefined : approved);
 		}
 		if (operation === 'apiCall') return await apiCall.call(this, itemIndex);
 		throw new Error(`Unknown action “${operation}”.`);

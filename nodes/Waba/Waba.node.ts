@@ -9,8 +9,6 @@ import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 import { getTemplateVariables, searchTemplates } from './loadOptions';
 import { bindWabaExecute, toItemJson } from './execute';
 
-const sendOperations = ['sendMessage', 'sendTemplate'];
-
 export class Waba implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: '1MSG for WhatsApp Business API',
@@ -81,7 +79,7 @@ export class Waba implements INodeType {
 				default: 'form',
 				displayOptions: {
 					show: {
-						operation: sendOperations,
+						operation: ['sendTemplate'],
 					},
 				},
 				options: [
@@ -91,22 +89,21 @@ export class Waba implements INodeType {
 						description: 'Fill in the fields below',
 					},
 					{
-						name: 'Custom Request Body',
+						name: 'Parameters',
 						value: 'custom',
-						description: 'Paste the JSON yourself',
+						description: 'Paste the WhatsApp component array',
 					},
 				],
 			},
 			{
 				displayName:
-					'A free-form message is delivered only if this person wrote to you in the last 24 hours. Otherwise use Send Template.',
+					'A free-form message is delivered only if this person wrote to you in the last 24 hours. Otherwise use Send a template.',
 				name: 'sessionNotice',
 				type: 'notice',
 				default: '',
 				displayOptions: {
 					show: {
 						operation: ['sendMessage'],
-						fillMode: ['form'],
 					},
 				},
 			},
@@ -118,11 +115,10 @@ export class Waba implements INodeType {
 				required: true,
 				placeholder: 'Phone, BSUID, or username',
 				description:
-					'Phone, BSUID, or username. Spaces, brackets, dashes, dots, and a leading plus are removed from phone numbers. You can also paste a chat ID from a webhook.',
+					'Phone, BSUID, or username. A username may contain dots: john.doe and @john.doe are the same. A BSUID looks like US.13491208655302741918. You can also paste a chat ID from a webhook. For any other JSON body, use Make an API call.',
 				displayOptions: {
 					show: {
 						operation: ['sendMessage'],
-						fillMode: ['form'],
 					},
 				},
 			},
@@ -134,7 +130,7 @@ export class Waba implements INodeType {
 				required: true,
 				placeholder: 'Phone, BSUID, or username',
 				description:
-					'Phone, BSUID, or username. Spaces, brackets, dashes, dots, and a leading plus are removed from phone numbers. You can also paste a chat ID from a webhook.',
+					'Phone, BSUID, or username. A username may contain dots: john.doe and @john.doe are the same. A BSUID looks like US.13491208655302741918. You can also paste a chat ID from a webhook.',
 				displayOptions: {
 					show: {
 						operation: ['sendTemplate'],
@@ -154,21 +150,6 @@ export class Waba implements INodeType {
 				displayOptions: {
 					show: {
 						operation: ['sendMessage'],
-						fillMode: ['form'],
-					},
-				},
-			},
-			{
-				displayName: 'Request Body',
-				name: 'customBody',
-				type: 'json',
-				default: '{\n  "phone": "14155552671",\n  "body": "Hello"\n}',
-				description:
-					'Full JSON body for sendMessage. Do not put the API key here. The credential adds it.',
-				displayOptions: {
-					show: {
-						operation: ['sendMessage'],
-						fillMode: ['custom'],
 					},
 				},
 			},
@@ -179,7 +160,7 @@ export class Waba implements INodeType {
 				default: { mode: 'list', value: '' },
 				required: true,
 				description:
-					'Approved templates on this channel. Each row shows the name, language, and category. Use the refresh icon on the list to reload it, or switch to ID and type a name or ID.',
+					'Approved templates on this channel. Each row shows the name, language, and category. To map a template, switch to ID and enter name|language, for example hello|en, then fill Variable values.',
 				displayOptions: {
 					show: {
 						operation: ['sendTemplate'],
@@ -201,7 +182,7 @@ export class Waba implements INodeType {
 						name: 'id',
 						type: 'string',
 						placeholder: 'hello_world',
-						hint: 'Template name or ID',
+						hint: 'name|language, for example hello|en',
 					},
 				],
 			},
@@ -231,6 +212,20 @@ export class Waba implements INodeType {
 						addAllFields: true,
 						multiKeyMatch: false,
 						supportAutoMap: false,
+					},
+				},
+			},
+			{
+				displayName: 'Variable Values',
+				name: 'bodyVariables',
+				type: 'string',
+				default: '',
+				description:
+					'Use this when Template is mapped as name|language. Enter one value per body placeholder, separated by commas, or a JSON array. Leave empty when you pick a template from the list and fill Variables. A header file, a button, or a carousel uses Parameters.',
+				displayOptions: {
+					show: {
+						operation: ['sendTemplate'],
+						fillMode: ['form'],
 					},
 				},
 			},
@@ -276,7 +271,7 @@ export class Waba implements INodeType {
 				required: true,
 				placeholder: 'templates',
 				description:
-					'API path on this channel, for example templates or messages. The API key is added from the credential.',
+					'Path on this channel. Production is https://api.1msg.io and Sandbox is https://sandbox.1msg.io. Examples: templates or sendMessage. A full https URL is accepted only on that same host.',
 				displayOptions: {
 					show: {
 						operation: ['apiCall'],
@@ -284,7 +279,7 @@ export class Waba implements INodeType {
 				},
 			},
 			{
-				displayName: 'Query Parameters',
+				displayName: 'Query String',
 				name: 'query',
 				type: 'json',
 				default: '{}',

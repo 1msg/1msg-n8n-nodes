@@ -17,7 +17,7 @@ export async function listApprovedTemplates(this: TemplateContext): Promise<Temp
 	const seen = new Set<string>();
 	const limit = 100;
 
-	for (let page = 0; page < 20; page++) {
+	for (let page = 0; page < 3; page++) {
 		const response = await oneMsgRequest.call(this, 'GET', '/templates', undefined, {
 			limit,
 			offset: page * limit,
@@ -43,6 +43,7 @@ export async function listApprovedTemplates(this: TemplateContext): Promise<Temp
 				? Number((response as { total?: unknown }).total)
 				: Number.NaN;
 		// Meta's list ignores offset and returns the full page set again.
+		if (collected.length >= 300) break;
 		if (added === 0) break;
 		if (pageItems.length < limit) break;
 		if (Number.isFinite(total) && collected.length >= total) break;
