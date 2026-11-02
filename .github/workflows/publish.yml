@@ -1,48 +1,68 @@
-# Publishes this n8n community node to npm when a version tag is pushed.
-# n8n requires GitHub Actions provenance for verification after 1 May 2026.
-#
-# Trusted publishing: on npmjs.com, add this GitHub workflow as a trusted
-# publisher (publish.yml) and leave NPM_TOKEN unset.
-# Token fallback: set the NPM_TOKEN repository secret.
-
+# Existing npm trust: 1msg/1msg-n8n-nodes / publish.yml.
+# Tags publish with OIDC and provenance; manual dispatch only rehearses the release.
 name: Publish
 
 on:
   push:
     tags:
       - '*.*.*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: publish-npm-1msg-n8n-nodes
+  cancel-in-progress: false
 
 jobs:
   publish:
-    name: Publish to npm
-    runs-on: ubuntu-latest
+    name: Publish or rehearse npm release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     permissions:
       id-token: write
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
-          cache: npm
-      - name: Install dependencies
-        run: npm ci
-      - name: Verify release tag and package versions
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify merged source and release metadata
         run: |
+          set -euo pipefail
+          git merge-base --is-ancestor HEAD origin/main
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
           import { readFileSync } from 'node:fs';
           const manifest = JSON.parse(readFileSync('package.json', 'utf8'));
           const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
-          assert.equal(process.env.GITHUB_REF_TYPE, 'tag', 'Publishing requires a version tag');
-          assert.equal(process.env.GITHUB_REF_NAME, manifest.version, 'Tag must equal package.json version');
+          assert.equal(manifest.name, '@1msg/n8n-nodes-1msg');
+          assert.equal(manifest.repository.url, 'git+https://github.com/1msg/1msg-n8n-nodes.git');
+          assert.match(manifest.version, /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/);
+          assert.ok(!manifest.publishConfig?.registry || manifest.publishConfig.registry.replace(/\/$/, '') === 'https://registry.npmjs.org');
           assert.equal(lock.version, manifest.version, 'Lockfile version must match package.json');
           assert.equal(lock.packages[''].version, manifest.version, 'Lockfile root package must match package.json');
+          if (process.env.GITHUB_REF_TYPE === 'tag') assert.equal(process.env.GITHUB_REF_NAME, manifest.version);
+          else assert.equal(process.env.GITHUB_REF, 'refs/heads/main');
           NODE
-      - name: Release
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+          registry-url: https://registry.npmjs.org/
+          cache: npm
+      - name: Use the pinned npm version with OIDC support
+        run: npm install --global npm@11.17.0 --ignore-scripts --registry=https://registry.npmjs.org/
+      - name: Install dependencies
+        run: npm ci
+      - name: Validate framework lint, build and packed entrypoints
         run: |
-          [ -n "$NPM_TOKEN" ] && npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
-          npm run release
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          npm run lint
+          npm run build
+          npm run test:pack
+      - name: Rehearse packing without changing the registry
+        if: github.event_name == 'workflow_dispatch'
+        run: npm pack --ignore-scripts --dry-run
+      - name: Release with the existing n8n lint/build/provenance checks
+        if: github.event_name == 'push'
+        run: npm run release
