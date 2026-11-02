@@ -28,6 +28,18 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Verify release tag and package versions
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          const manifest = JSON.parse(readFileSync('package.json', 'utf8'));
+          const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
+          assert.equal(process.env.GITHUB_REF_TYPE, 'tag', 'Publishing requires a version tag');
+          assert.equal(process.env.GITHUB_REF_NAME, manifest.version, 'Tag must equal package.json version');
+          assert.equal(lock.version, manifest.version, 'Lockfile version must match package.json');
+          assert.equal(lock.packages[''].version, manifest.version, 'Lockfile root package must match package.json');
+          NODE
       - name: Release
         run: |
           [ -n "$NPM_TOKEN" ] && npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
