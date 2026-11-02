@@ -75,3 +75,19 @@ export function languageCode(language: unknown): string {
 	}
 	return '';
 }
+
+const NAMESPACE_KEYS = [
+	'namespace',
+	'message_template_namespace',
+	'messageTemplateNamespace',
+] as const;
+
+/** Read the supported provider namespace aliases, accepting only nonempty string values. */
+export function readNamespace(template: TemplateRecord): string {
+	const record = template as unknown as Record<string, unknown>;
+	for (const key of NAMESPACE_KEYS) {
+		const value = record[key];
+		if (typeof value === 'string' && value.trim()) return value.trim();
+	}
+	return '';
+}

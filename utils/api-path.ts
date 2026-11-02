@@ -5,6 +5,7 @@ export class ApiPathError extends Error {
 	}
 }
 
+/** Resolve relative or same-host API paths without duplicating the channel or forwarding its key to another host. */
 export function channelRequestUrl(baseUrl: string, instanceId: string, rawPath: string): string {
 	const base = baseUrl.replace(/\/$/, '');
 	const path = rawPath.trim();
@@ -18,29 +19,7 @@ export function channelRequestUrl(baseUrl: string, instanceId: string, rawPath: 
 	let pathname = path;
 	let search = '';
 	if (/^https?:\/\//i.test(path)) {
-		let url: URL | undefined;
-		try {
-			url = new URL(path);
-		} catch {
-			url = undefined;
-		}
-		if (!url) {
-			throw new ApiPathError('That address is not a valid URL. Paste a path such as /templates.');
-		}
-		let baseHost = '';
-		try {
-			baseHost = new URL(base).host;
-		} catch {
-			baseHost = '';
-		}
-		if (!baseHost) {
-			throw new ApiPathError('The credential Base URL is not valid.');
-		}
-		if (url.host !== baseHost) {
-			throw new ApiPathError(
-				'Use a path on your 1MSG API host, such as /templates. The API key is not sent to other websites.',
-			);
-		}
+		const url = validatedApiUrl(path, base);
 		pathname = url.pathname;
 		search = url.search;
 	} else {
@@ -65,4 +44,35 @@ export function channelRequestUrl(baseUrl: string, instanceId: string, rawPath: 
 		pathname.startsWith(`${prefix}/`);
 	const fullPath = alreadyScoped ? pathname : `${prefix}${pathname}`;
 	return `${base}${fullPath}${search}`;
+}
+
+/** Validate a full API URL before channel scoping so credentials stay on the configured HTTPS host. */
+function validatedApiUrl(path: string, base: string): URL {
+	if (/^http:\/\//i.test(path)) {
+		throw new ApiPathError('Use https:// for a full URL, or paste a path such as /templates.');
+	}
+	let url: URL | undefined;
+	try {
+		url = new URL(path);
+	} catch {
+		url = undefined;
+	}
+	if (!url) {
+		throw new ApiPathError('That address is not a valid URL. Paste a path such as /templates.');
+	}
+	let baseHost = '';
+	try {
+		baseHost = new URL(base).host;
+	} catch {
+		baseHost = '';
+	}
+	if (!baseHost) {
+		throw new ApiPathError('The credential Base URL is not valid.');
+	}
+	if (url.host !== baseHost) {
+		throw new ApiPathError(
+			'Use a path on your 1MSG API host, such as /templates. The API key is not sent to other websites.',
+		);
+	}
+	return url;
 }

@@ -21,7 +21,7 @@ export class OneMsgApi implements ICredentialType {
 
 	properties: INodeProperties[] = [
 		{
-			displayName: 'API Key',
+			displayName: 'API key',
 			name: 'apiKey',
 			type: 'string',
 			typeOptions: { password: true },
@@ -31,12 +31,12 @@ export class OneMsgApi implements ICredentialType {
 				'Channel API key from 1MSG. The channel is taken from this key, so you do not pick a channel on each node.',
 		},
 		{
-			displayName: 'API URL',
+			displayName: 'Environment',
 			name: 'environment',
 			type: 'options',
 			default: 'production',
 			description:
-				'Production is a live channel. Sandbox is a test channel at https://sandbox.1msg.io. Custom is another host 1MSG gave you.',
+				'Production is a live channel at https://api.1msg.io. Sandbox is a test channel at https://sandbox.1msg.io. Other hosts are not allowed.',
 			options: [
 				{
 					name: 'Production — https://api.1msg.io',
@@ -46,23 +46,7 @@ export class OneMsgApi implements ICredentialType {
 					name: 'Sandbox — https://sandbox.1msg.io',
 					value: 'sandbox',
 				},
-				{
-					name: 'Custom',
-					value: 'custom',
-				},
 			],
-		},
-		{
-			displayName: 'API URL',
-			name: 'baseUrl',
-			type: 'string',
-			default: 'https://sandbox.stage.1msg.io',
-			description: 'Host 1MSG gave you, for example https://sandbox.stage.1msg.io.',
-			displayOptions: {
-				show: {
-					environment: ['custom'],
-				},
-			},
 		},
 		{
 			displayName: 'Channel ID',

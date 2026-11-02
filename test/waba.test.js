@@ -24,24 +24,31 @@ function jwt(payload) {
 	return `${encode({ alg: 'none', typ: 'JWT' })}.${encode(payload)}.sig`;
 }
 
+/** Recipient accepts a phone in everyday formats. */
 test('recipient accepts a phone in everyday formats', () => {
 	assert.deepEqual(recipientBody('+1 (415) 555-2671'), { phone: '14155552671' });
 	assert.deepEqual(recipientBody('1.415.555.2671'), { phone: '14155552671' });
 });
 
+/** Recipient detects BSUID, username, and chat ids. */
 test('recipient detects BSUID, username, and chat ids', () => {
 	assert.deepEqual(recipientBody('AB.954395553956302'), { bsuid: 'AB.954395553956302' });
+	assert.deepEqual(recipientBody('US.13491208655302741918'), { bsuid: 'US.13491208655302741918' });
 	assert.deepEqual(recipientBody('@shop'), { username: 'shop' });
+	assert.deepEqual(recipientBody('john.doe'), { username: 'john.doe' });
+	assert.deepEqual(recipientBody('@john.doe'), { username: 'john.doe' });
 	assert.deepEqual(recipientBody('14155552671@c.us'), { chatId: '14155552671@c.us' });
 	assert.deepEqual(recipientBody('AB.1@lid'), { chatId: 'AB.1@lid' });
 });
 
+/** Recipient rejects an empty or unknown value. */
 test('recipient rejects an empty or unknown value', () => {
 	assert.throws(() => recipientBody('   '), /Enter a recipient/);
 	assert.throws(() => recipientBody('hello world'), /Could not tell/);
 	assert.throws(() => recipientBody('123'), /country code/);
 });
 
+/** Channel id comes from the API key. */
 test('channel id comes from the API key', () => {
 	const key = jwt({ instanceId: 'instance371267300', token: 'inner' });
 	assert.equal(resolveInstanceId(key), '371267300');
@@ -49,21 +56,20 @@ test('channel id comes from the API key', () => {
 	assert.throws(() => resolveInstanceId('plain-key'), /not tied to a channel/);
 });
 
-test('API URL selects production, sandbox, or a saved host', () => {
+/** API URL is production or sandbox only. */
+test('API URL is production or sandbox only', () => {
 	assert.equal(resolveBaseUrl('production', 'https://eu.1msg.io'), 'https://api.1msg.io');
 	assert.equal(resolveBaseUrl('sandbox', ''), 'https://sandbox.1msg.io');
-	assert.equal(
-		resolveBaseUrl('custom', 'https://sandbox.stage.1msg.io/'),
-		'https://sandbox.stage.1msg.io',
-	);
-	assert.equal(resolveBaseUrl('', 'https://eu.1msg.io'), 'https://eu.1msg.io');
+	assert.equal(resolveBaseUrl('', ''), 'https://api.1msg.io');
+	assert.equal(resolveBaseUrl('', 'https://sandbox.1msg.io'), 'https://sandbox.1msg.io');
+	assert.throws(() => resolveBaseUrl('custom', 'https://sandbox.stage.1msg.io/'), /not allowed/);
+	assert.throws(() => resolveBaseUrl('', 'https://eu.1msg.io'), /not allowed/);
 	assert.deepEqual(sandboxQuery('https://api.1msg.io', 'TKNabc'), {});
 	assert.deepEqual(sandboxQuery('https://sandbox.1msg.io', 'Bearer TKNabc'), { token: 'TKNabc' });
-	assert.deepEqual(sandboxQuery('https://sandbox.stage.1msg.io/ch/status', 'TKNabc'), {
-		token: 'TKNabc',
-	});
+	assert.deepEqual(sandboxQuery('https://sandbox.stage.1msg.io/ch/status', 'TKNabc'), {});
 });
 
+/** Package description names the official WhatsApp API. */
 test('package description names the official WhatsApp API', () => {
 	const expected =
 		'Send WhatsApp messages, receive webhooks, and make any API request using the official WhatsApp API through 1MSG.';
@@ -75,6 +81,7 @@ test('package description names the official WhatsApp API', () => {
 	assert.match(source, /official WhatsApp API through 1MSG/);
 });
 
+/** API path stays on the 1MSG host and does not repeat the channel. */
 test('API path stays on the 1MSG host and does not repeat the channel', () => {
 	assert.equal(
 		channelRequestUrl('https://api.1msg.io/', 'ch1', 'templates'),
@@ -94,13 +101,17 @@ test('API path stays on the 1MSG host and does not repeat the channel', () => {
 	);
 });
 
+/** Errors explain a closed 24-hour window and a rejected key. */
 test('errors explain a closed 24-hour window and a rejected key', () => {
-	assert.match(humanizeMessage('Dialog window is closed', 400), /Send Template/);
-	assert.match(humanizeMessage('invalid token', 401), /API key was rejected/);
+	assert.match(humanizeMessage('Dialog window is closed', 400), /Send a template/);
+	assert.match(humanizeMessage('invalid token', 401), /\[401\].*API key was rejected/);
+	assert.doesNotMatch(humanizeMessage('Unknown channel', 404), /Check the path/);
+	assert.match(humanizeMessage('', 404, 'api'), /Check the path/);
 	assert.throws(() => assertSendSucceeded({ sent: false, message: 'empty body' }), /empty body/);
 	assert.doesNotThrow(() => assertSendSucceeded({ sent: true, id: 'wamid.1' }));
 });
 
+/** Webhook list keeps existing addresses and stops at five. */
 test('webhook list keeps existing addresses and stops at five', () => {
 	const current = ['https://crm.example/hook', 'https://inbox.example/hook'];
 	const added = addWebhookUrl(current, 'https://n8n.example/webhook/waba/');
@@ -122,6 +133,7 @@ test('webhook list keeps existing addresses and stops at five', () => {
 	);
 });
 
+/** Events keep incoming messages and delivery statuses that were selected. */
 test('events keep incoming messages and delivery statuses that were selected', () => {
 	const body = {
 		instanceId: 'ch1',
@@ -148,6 +160,7 @@ test('events keep incoming messages and delivery statuses that were selected', (
 	assert.equal(selected[1].json.id, undefined);
 });
 
+/** Raw provider payloads are classified when the channel uses them. */
 test('raw provider payloads are classified when the channel uses them', () => {
 	const selected = selectEvents(
 		{
@@ -172,6 +185,7 @@ test('raw provider payloads are classified when the channel uses them', () => {
 	);
 });
 
+/** Template form follows the inbox variable layout. */
 test('template form follows the inbox variable layout', () => {
 	const components = [
 		{ type: 'HEADER', format: 'IMAGE' },
@@ -226,6 +240,7 @@ test('template form follows the inbox variable layout', () => {
 	assert.throws(() => buildTemplateParams(components, { body_1: 'Ada' }), /File link/);
 });
 
+/** Carousel cards read buttons nested inside the card. */
 test('carousel cards read buttons nested inside the card', () => {
 	const components = [
 		{ type: 'BODY', text: 'Pick one' },
@@ -284,6 +299,7 @@ test('carousel cards read buttons nested inside the card', () => {
 	);
 });
 
+/** Authentication, copy-code, and flow templates send the button parameters Meta requires. */
 test('authentication, copy-code, and flow templates send the button parameters Meta requires', () => {
 	const auth = [
 		{ type: 'BODY', add_security_recommendation: true },
@@ -393,6 +409,7 @@ test('authentication, copy-code, and flow templates send the button parameters M
 	);
 });
 
+/** Duplicate template names must be chosen from the list. */
 test('duplicate template names must be chosen from the list', () => {
 	const templates = [
 		{ id: '1', name: 'hello', language: 'en', status: 'APPROVED', namespace: 'ns' },
@@ -406,6 +423,7 @@ test('duplicate template names must be chosen from the list', () => {
 	);
 });
 
+/** Lowercase approved status and string components still build a template. */
 test('lowercase approved status and string components still build a template', () => {
 	assert.equal(isApproved({ status: 'approved', name: 'hello' }), true);
 	const components = JSON.stringify([{ type: 'BODY', text: 'Hi {{1}}' }]);
@@ -446,21 +464,22 @@ test('recipient shows on the message form and on every template send', () => {
 		fields
 			.filter((field) => field.name === name)
 			.some((field) => displayParameter(values, field, null, null));
-	assert.equal(shown('recipient', { operation: 'sendMessage', fillMode: 'form' }), true);
-	assert.equal(shown('recipient', { operation: 'sendMessage', fillMode: 'custom' }), false);
+	assert.equal(shown('recipient', { operation: 'sendMessage' }), true);
+	assert.equal(shown('recipient', { operation: 'sendMessage', fillMode: 'custom' }), true);
 	assert.equal(shown('templateRecipient', { operation: 'sendTemplate', fillMode: 'form' }), true);
 	assert.equal(shown('templateRecipient', { operation: 'sendTemplate', fillMode: 'custom' }), true);
 	assert.equal(shown('recipient', { operation: 'sendTemplate', fillMode: 'form' }), false);
 	assert.equal(shown('recipient', { operation: 'apiCall' }), false);
 });
 
+/** API failures keep the readable 1MSG message. */
 test('API failures keep the readable 1MSG message', () => {
 	assert.match(
 		messageFromFailure({
 			statusCode: 400,
 			error: { message: 'Dialog window is closed' },
 		}),
-		/Send Template/,
+		/Send a template/,
 	);
 	assert.match(
 		messageFromFailure({ message: '400 - {"message":"template is not defined"}' }),

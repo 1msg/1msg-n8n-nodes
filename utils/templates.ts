@@ -12,6 +12,7 @@ import {
 	normalizeComponents,
 	languageCode,
 } from './template-shapes';
+import { readTemplateSpec, type TemplateSpec } from './template-snapshot';
 import { fieldId, requireValue, textParameters, mediaParameter } from './template-values';
 
 function componentList(components: unknown): ComponentRecord[] {
@@ -478,7 +479,8 @@ export function buildTemplateParams(
 	return params;
 }
 
-export function templateKey(template: TemplateRecord): string {
+/** Resolve legacy selections by provider ID or the name/language composite key. */
+function templateKey(template: TemplateRecord): string {
 	if (template.id) return String(template.id);
 	return `${template.name || ''}|${languageCode(template.language)}`;
 }
@@ -500,20 +502,26 @@ export function findTemplate(templates: TemplateRecord[], key: string): Template
 	if (!trimmed) {
 		throw new TemplateError('Choose a template, or enter its name or ID.');
 	}
-	const byKey = templates.find((template) => templateKey(template) === trimmed);
+	const spec = readTemplateSpec(trimmed);
+	const stored = findStoredTemplate(templates, spec);
+	if (stored) return stored;
+	const lookup = spec.name ? '' : trimmed;
+	const byKey = lookup ? templates.find((template) => templateKey(template) === lookup) : undefined;
 	if (byKey) return byKey;
-	const byId = templates.find((template) => template.id && String(template.id) === trimmed);
-	if (byId) return byId;
-	const byName = templates.filter(
-		(template) =>
-			template.name === trimmed ||
-			`${template.name}|${languageCode(template.language)}` === trimmed,
-	);
-	if (byName.length === 1 && byName[0]) return byName[0];
-	if (byName.length > 1) {
-		throw new TemplateError(
-			`Several approved templates are named “${trimmed}”. Pick one from the list so the language is clear.`,
-		);
+	const named = findNamedTemplate(templates, lookup);
+	if (named) return named;
+
+	if (spec.name && spec.language && templates.length === 0) {
+		return {
+			...(spec.id ? { id: spec.id } : {}),
+			name: spec.name,
+			language: spec.language,
+			...(spec.namespace ? { namespace: spec.namespace } : {}),
+			...(spec.components === null || spec.components === undefined
+				? {}
+				: { components: spec.components }),
+			status: 'APPROVED',
+		};
 	}
 	throw new TemplateError(
 		'No approved template matches this name or ID. Refresh the list, and check that Meta has approved the template.',
@@ -532,75 +540,46 @@ export function templatesFromResponse(response: unknown): TemplateRecord[] {
 	return [];
 }
 
-const NAMESPACE_KEYS = [
-	'namespace',
-	'message_template_namespace',
-	'messageTemplateNamespace',
-] as const;
-
-export function readNamespace(template: TemplateRecord): string {
-	const record = template as unknown as Record<string, unknown>;
-	for (const key of NAMESPACE_KEYS) {
-		const value = record[key];
-		if (typeof value === 'string' && value.trim()) return value.trim();
-	}
-	return '';
-}
-
-/**
- * Namespace is required by 1MSG sendTemplate. It is usually on the template.
- * On some channels it is only present on other templates of the same account,
- * and then only when every listed namespace is the same.
- */
-export function resolveNamespace(
-	template: TemplateRecord,
-	siblings: TemplateRecord[] = [],
-): string {
-	const own = readNamespace(template);
-	if (own) return own;
-	const found = new Set<string>();
-	for (const sibling of siblings) {
-		const namespace = readNamespace(sibling);
-		if (namespace) found.add(namespace);
-	}
-	if (found.size === 1) return found.values().next().value ?? '';
-	return '';
-}
-
-/** Return the template identifier and language required by the send endpoint, rejecting incomplete template metadata. */
-export function templateSendIdentity(
-	template: TemplateRecord,
-	siblings: TemplateRecord[] = [],
-): {
-	template: string;
-	namespace: string;
-	language: { policy: 'deterministic'; code: string };
-} {
-	const name = template.name?.trim();
-	const code = languageCode(template.language);
-	if (!name) {
-		throw new TemplateError(
-			'The selected template has no name. Refresh the list and choose it again.',
-		);
-	}
-	if (!code) {
-		throw new TemplateError(
-			`Template “${name}” has no language. Refresh the list and choose it again.`,
-		);
-	}
-	const namespace = resolveNamespace(template, siblings);
-	if (!namespace) {
-		throw new TemplateError(
-			`Template “${name}” has no namespace, so 1MSG cannot send it yet. Refresh the list. If it still has no namespace, open the template in 1MSG and check the channel connection.`,
-		);
-	}
-	return {
-		template: name,
-		namespace,
-		language: { policy: 'deterministic', code },
-	};
-}
-
+export { templateSendIdentity } from './template-identity';
 // Retain the public template module surface for existing node consumers.
 export { TemplateError, normalizeComponents, languageCode } from './template-shapes';
+
 export type { TemplateRecord, TemplateField } from './template-shapes';
+export { readTemplateSpec, packTemplateValue } from './template-snapshot';
+
+/** Prefer a provider ID and then the exact stored name/language pair when refreshing a dropdown snapshot. */
+function findStoredTemplate(
+	templates: TemplateRecord[],
+	spec: TemplateSpec,
+): TemplateRecord | undefined {
+	if (spec.id) {
+		const match = templates.find((template) => template.id && String(template.id) === spec.id);
+		if (match) return match;
+	}
+	if (spec.name && spec.language)
+		/** Match both stored name and language so duplicate names in another locale cannot be selected. */
+		return templates.find(
+			(template) =>
+				template.name === spec.name && languageCode(template.language) === spec.language,
+		);
+	return undefined;
+}
+/** Resolve a legacy plain name only when its language is unambiguous. */
+function findNamedTemplate(
+	templates: TemplateRecord[],
+	lookup: string,
+): TemplateRecord | undefined {
+	if (!lookup) return undefined;
+	/** Keep all name matches so a language collision is reported instead of choosing the first row. */
+	const matches = templates.filter(
+		(template) =>
+			template.name === lookup || `${template.name}|${languageCode(template.language)}` === lookup,
+	);
+	if (matches.length > 1)
+		throw new TemplateError(
+			`Several approved templates are named “${lookup}”. Pick one from the list so the language is clear.`,
+		);
+	return matches[0];
+}
+
+export type { TemplateSpec } from './template-snapshot';

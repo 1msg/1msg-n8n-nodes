@@ -14,13 +14,18 @@ import { extractMessage, humanizeMessage, messageFromFailure } from '../utils/er
 
 type OneMsgContext = IExecuteFunctions | ILoadOptionsFunctions | IHookFunctions;
 
+interface OneMsgRequestOptions {
+	qs?: IDataObject;
+	scope?: 'api';
+}
+
 /** Resolve validated n8n credentials, send one authenticated request through the host HTTP adapter, and normalize API failures. */
 export async function oneMsgRequest(
 	this: OneMsgContext,
 	method: IHttpRequestMethods,
 	path: string,
 	body?: IDataObject | unknown[] | undefined,
-	qs?: IDataObject,
+	options: OneMsgRequestOptions = {},
 ): Promise<unknown> {
 	const credentials = await this.getCredentials('oneMsgApi');
 	const apiKey = stripAuthPrefix(String(credentials.apiKey || ''));
@@ -52,7 +57,7 @@ export async function oneMsgRequest(
 			method,
 			url,
 			...(body === undefined ? {} : { body }),
-			...(qs === undefined ? {} : { qs }),
+			...(options.qs === undefined ? {} : { qs: options.qs }),
 			json: true,
 			returnFullResponse: true,
 			ignoreHttpStatusErrors: true,
@@ -69,7 +74,7 @@ export async function oneMsgRequest(
 	if (unwrapped.statusCode !== undefined && unwrapped.statusCode >= 400) {
 		throw new NodeOperationError(
 			this.getNode(),
-			humanizeMessage(extractMessage(unwrapped.body), unwrapped.statusCode),
+			humanizeMessage(extractMessage(unwrapped.body), unwrapped.statusCode, options.scope),
 		);
 	}
 	return unwrapped.body;
