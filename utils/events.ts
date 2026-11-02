@@ -97,7 +97,9 @@ export function extractEvents(body: unknown): WabaEvent[] {
 
 export function selectEvents(body: unknown, selected: string[]): WabaEvent[] {
 	const allowed = new Set(
-		selected.map((name) => SELECTED_KIND[name]).filter((kind): kind is WabaEventKind => Boolean(kind)),
+		selected
+			.map((name) => SELECTED_KIND[name])
+			.filter((kind): kind is WabaEventKind => Boolean(kind)),
 	);
 	return extractEvents(body).filter((event) => allowed.has(event.kind));
 }

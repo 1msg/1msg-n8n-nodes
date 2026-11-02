@@ -1,10 +1,9 @@
 import type { IDataObject, IExecuteFunctions, IHttpRequestMethods } from 'n8n-workflow';
+
 import { NodeOperationError } from 'n8n-workflow';
 
-import { listApprovedTemplates } from './listTemplates';
-import { oneMsgRequest } from '../transport';
 import { channelRequestUrl } from '../../utils/api-path';
-import { resolveBaseUrl, resolveInstanceId, stripAuthPrefix } from '../../utils/channel';
+import { resolveChannelCredentials } from '../../utils/channel';
 import { assertSendSucceeded } from '../../utils/errors';
 import { recipientBody } from '../../utils/recipient';
 import {
@@ -13,7 +12,10 @@ import {
 	readTemplateSpec,
 	templateSendIdentity,
 	type TemplateRecord,
+	type TemplateSpec,
 } from '../../utils/templates';
+import { oneMsgRequest } from '../transport';
+import { listApprovedTemplates } from './listTemplates';
 
 function jsonValue(value: unknown, label: string): unknown {
 	if (typeof value !== 'string') return value;
@@ -40,10 +42,11 @@ function jsonObject(value: unknown, label: string): IDataObject {
 	return parsed as IDataObject;
 }
 
+/** Parse a configured JSON list and reject non-arrays before constructing an n8n API payload. */
 function jsonArray(value: unknown, label: string): unknown[] {
 	const parsed = jsonValue(value, label);
 	if (!Array.isArray(parsed)) {
-		throw new Error(`${label} must be a JSON array of template components.`);
+		throw new TypeError(`${label} must be a JSON array of template components.`);
 	}
 	return parsed;
 }
@@ -62,6 +65,7 @@ function mappingValues(raw: unknown): Record<string, string> {
 	return result;
 }
 
+/** Validate the recipient and nonempty free-form text; reject provider-level failed sends even after HTTP success. */
 async function sendMessage(this: IExecuteFunctions, itemIndex: number): Promise<unknown> {
 	const recipient = recipientBody(this.getNodeParameter('recipient', itemIndex) as string);
 	const text = String(this.getNodeParameter('body', itemIndex) as string);
@@ -76,6 +80,7 @@ async function sendMessage(this: IExecuteFunctions, itemIndex: number): Promise<
 	return response;
 }
 
+/** Convert mapped JSON or comma-separated text into body parameters, returning a user-facing error for invalid JSON. */
 function bodyParamsFromValues(raw: string): unknown[] | string {
 	const trimmed = raw.trim();
 	if (!trimmed || trimmed === '[]') return [];
@@ -92,12 +97,16 @@ function bodyParamsFromValues(raw: string): unknown[] | string {
 		}
 		values = parsed.map((item) => String(item ?? '').trim()).filter(Boolean);
 	} else {
-		values = trimmed.split(',').map((item) => item.trim()).filter(Boolean);
+		values = trimmed
+			.split(',')
+			.map((item) => item.trim())
+			.filter(Boolean);
 	}
 	if (!values.length) return [];
 	return [{ type: 'body', parameters: values.map((text) => ({ type: 'text', text })) }];
 }
 
+/** Resolve template identity and parameter precedence, then send and verify the provider result. */
 async function sendTemplate(
 	this: IExecuteFunctions,
 	itemIndex: number,
@@ -111,25 +120,24 @@ async function sendTemplate(
 		fillMode === 'form' ? mappingValues(this.getNodeParameter('variables', itemIndex, {})) : {};
 	const variableText =
 		fillMode === 'form' ? String(this.getNodeParameter('bodyVariables', itemIndex, '') || '') : '';
-	const selfContained = Boolean(
-		spec.name &&
-			spec.language &&
-			spec.namespace &&
-			(spec.components != null || fillMode === 'custom' || variableText.trim()),
-	);
+	const selfContained = isSelfContainedTemplate(spec, fillMode, variableText);
 	const template = selfContained ? findTemplate([], key) : findTemplate(templates || [], key);
 	const siblings = selfContained ? [] : templates || [];
 	const recipient = recipientBody(this.getNodeParameter('templateRecipient', itemIndex) as string);
 	let params: unknown[] = [];
 	if (fillMode === 'custom') {
 		params = jsonArray(this.getNodeParameter('customParams', itemIndex), 'Parameters');
-	} else if (Object.keys(mapped).length && template.components != null) {
+	} else if (
+		Object.keys(mapped).length &&
+		template.components !== null &&
+		template.components !== undefined
+	) {
 		params = buildTemplateParams(template.components, mapped);
 	} else if (variableText.trim()) {
 		const parsed = bodyParamsFromValues(variableText);
 		if (typeof parsed === 'string') throw new NodeOperationError(this.getNode(), parsed);
 		params = parsed;
-	} else if (template.components != null) {
+	} else if (template.components !== null && template.components !== undefined) {
 		params = buildTemplateParams(template.components, mapped);
 	}
 
@@ -143,6 +151,7 @@ async function sendTemplate(
 	return response;
 }
 
+/** Validate the custom request body and channel-relative path before sending it through the shared authenticated transport. */
 async function apiCall(this: IExecuteFunctions, itemIndex: number): Promise<unknown> {
 	const method = this.getNodeParameter('method', itemIndex) as IHttpRequestMethods;
 	const path = this.getNodeParameter('path', itemIndex) as string;
@@ -160,25 +169,24 @@ async function apiCall(this: IExecuteFunctions, itemIndex: number): Promise<unkn
 	}
 
 	const credentials = await this.getCredentials('oneMsgApi');
-	const apiKey = stripAuthPrefix(String(credentials.apiKey || ''));
-	const baseUrl = resolveBaseUrl(String(credentials.environment || ''), String(credentials.baseUrl || ''));
-	const instanceId = resolveInstanceId(apiKey, String(credentials.channelId || ''));
+	const { baseUrl, instanceId } = resolveChannelCredentials(credentials);
 	// Validate the path before the request so a foreign URL never receives the key.
 	channelRequestUrl(baseUrl, instanceId, path);
 
-	return await oneMsgRequest.call(
-		this,
-		method,
-		path,
-		body,
-		Object.keys(query).length ? query : undefined,
-		'api',
-	);
+	return await oneMsgRequest.call(this, method, path, body, {
+		...(Object.keys(query).length ? { qs: query } : {}),
+		scope: 'api',
+	});
 }
 
-export function bindWabaExecute(): (this: IExecuteFunctions, itemIndex: number) => Promise<unknown> {
+/** Bind one execution-local template cache so multiple workflow items share the same approved list. */
+export function bindWabaExecute(): (
+	this: IExecuteFunctions,
+	itemIndex: number,
+) => Promise<unknown> {
 	let approved: TemplateRecord[] | undefined;
-	return async function executeOne(this: IExecuteFunctions, itemIndex: number): Promise<unknown> {
+	/** Dispatch one workflow item and fetch templates only for a selection missing required stored metadata. */
+	async function executeOne(this: IExecuteFunctions, itemIndex: number): Promise<unknown> {
 		const operation = this.getNodeParameter('operation', itemIndex) as string;
 		if (operation === 'sendMessage') return await sendMessage.call(this, itemIndex);
 		if (operation === 'sendTemplate') {
@@ -186,19 +194,17 @@ export function bindWabaExecute(): (this: IExecuteFunctions, itemIndex: number) 
 			const spec = readTemplateSpec(String(selected?.value || ''));
 			const fillMode = this.getNodeParameter('fillMode', itemIndex, 'form') as string;
 			const variableText =
-				fillMode === 'form' ? String(this.getNodeParameter('bodyVariables', itemIndex, '') || '') : '';
-			const selfContained = Boolean(
-				spec.name &&
-					spec.language &&
-					spec.namespace &&
-					(spec.components != null || fillMode === 'custom' || variableText.trim()),
-			);
+				fillMode === 'form'
+					? String(this.getNodeParameter('bodyVariables', itemIndex, '') || '')
+					: '';
+			const selfContained = isSelfContainedTemplate(spec, fillMode, variableText);
 			if (!selfContained && !approved) approved = await listApprovedTemplates.call(this);
 			return await sendTemplate.call(this, itemIndex, selfContained ? undefined : approved);
 		}
 		if (operation === 'apiCall') return await apiCall.call(this, itemIndex);
 		throw new Error(`Unknown action “${operation}”.`);
-	};
+	}
+	return executeOne;
 }
 
 export function toItemJson(response: unknown): IDataObject {
@@ -206,4 +212,20 @@ export function toItemJson(response: unknown): IDataObject {
 		return response as IDataObject;
 	}
 	return { data: response as IDataObject['data'] };
+}
+
+/** Stored identity and namespace avoid listing templates only when execution also has components or explicit values. */
+function isSelfContainedTemplate(
+	spec: TemplateSpec,
+	fillMode: string,
+	variableText: string,
+): boolean {
+	return Boolean(
+		spec.name &&
+		spec.language &&
+		spec.namespace &&
+		((spec.components !== null && spec.components !== undefined) ||
+			fillMode === 'custom' ||
+			variableText.trim()),
+	);
 }

@@ -1,0 +1,188 @@
+{
+	"schemaVersion": 1,
+	"adoptionBase": "768dc82b9295fd5a8d8cad4d5eae9437458a0547",
+	"entries": [
+		{
+			"key": "package.json|devDependencies|release-it",
+			"value": 1,
+			"path": "package.json",
+			"rule": "devDependencies",
+			"symbol": "release-it",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"package.json": "dependency:release-it:20.2.0"
+			}
+		},
+		{
+			"key": "utils/api-path.ts|exports|ApiPathError",
+			"value": 1,
+			"path": "utils/api-path.ts",
+			"rule": "exports",
+			"symbol": "ApiPathError",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/api-path.ts": "b5ca4f6f867f55a4b84566fb59716beb964e264cdb820f7e3aae23c513ea3ecc"
+			}
+		},
+		{
+			"key": "utils/channel.ts|exports|ChannelKeyError",
+			"value": 1,
+			"path": "utils/channel.ts",
+			"rule": "exports",
+			"symbol": "ChannelKeyError",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/channel.ts": "46dc35eddeefeeac02a270dcd12f2961ff2864daf2b6f8d050f312177d4fd3f0"
+			}
+		},
+		{
+			"key": "utils/channel.ts|exports|decodeJwtPayload",
+			"value": 1,
+			"path": "utils/channel.ts",
+			"rule": "exports",
+			"symbol": "decodeJwtPayload",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/channel.ts": "46dc35eddeefeeac02a270dcd12f2961ff2864daf2b6f8d050f312177d4fd3f0"
+			}
+		},
+		{
+			"key": "utils/channel.ts|exports|normalizeInstanceId",
+			"value": 1,
+			"path": "utils/channel.ts",
+			"rule": "exports",
+			"symbol": "normalizeInstanceId",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/channel.ts": "46dc35eddeefeeac02a270dcd12f2961ff2864daf2b6f8d050f312177d4fd3f0"
+			}
+		},
+		{
+			"key": "utils/events.ts|exports|extractEvents",
+			"value": 1,
+			"path": "utils/events.ts",
+			"rule": "exports",
+			"symbol": "extractEvents",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/events.ts": "d974e15d3d57903d272472aa9bce5f6880334cbe7b1878ff216e2a96334b247f"
+			}
+		},
+		{
+			"key": "utils/events.ts|types|WabaEventKind",
+			"value": 1,
+			"path": "utils/events.ts",
+			"rule": "types",
+			"symbol": "WabaEventKind",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/events.ts": "d974e15d3d57903d272472aa9bce5f6880334cbe7b1878ff216e2a96334b247f"
+			}
+		},
+		{
+			"key": "utils/recipient.ts|exports|RecipientError",
+			"value": 1,
+			"path": "utils/recipient.ts",
+			"rule": "exports",
+			"symbol": "RecipientError",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/recipient.ts": "87a379a0a24df8424d36b08031cc0935aa99ea77556e7e6d5dcf6e9b84358d15"
+			}
+		},
+		{
+			"key": "utils/templates.ts|exports|normalizeComponents",
+			"value": 1,
+			"path": "utils/templates.ts",
+			"rule": "exports",
+			"symbol": "normalizeComponents",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/templates.ts": "0a3fb86c615f6938b275cb1815c550819b32243f32adba451a8fb6f630c45b83"
+			}
+		},
+		{
+			"key": "utils/templates.ts|exports|TemplateError",
+			"value": 1,
+			"path": "utils/templates.ts",
+			"rule": "exports",
+			"symbol": "TemplateError",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/templates.ts": "0a3fb86c615f6938b275cb1815c550819b32243f32adba451a8fb6f630c45b83"
+			}
+		},
+		{
+			"key": "utils/webhooks.ts|exports|normalizeWebhookUrl",
+			"value": 1,
+			"path": "utils/webhooks.ts",
+			"rule": "exports",
+			"symbol": "normalizeWebhookUrl",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/webhooks.ts": "b8c06512689990c903bb381885a4fcc495fa19ec6ddb5be4e6c502d43a8f169e"
+			}
+		},
+		{
+			"key": "utils/webhooks.ts|exports|WebhookListError",
+			"value": 1,
+			"path": "utils/webhooks.ts",
+			"rule": "exports",
+			"symbol": "WebhookListError",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/webhooks.ts": "b8c06512689990c903bb381885a4fcc495fa19ec6ddb5be4e6c502d43a8f169e"
+			}
+		},
+		{
+			"key": "utils/webhooks.ts|exports|webhookWriteBody",
+			"value": 1,
+			"path": "utils/webhooks.ts",
+			"rule": "exports",
+			"symbol": "webhookWriteBody",
+			"owner": "1MSG SDK/tooling maintainers",
+			"expires": "2026-12-11",
+			"reason": "Historical findings replayed at the adoption base; each item is tracked independently and cannot increase.",
+			"issue": "https://plane.1msg.io/1msg/browse/1MSG-156/",
+			"evidence": {
+				"utils/webhooks.ts": "b8c06512689990c903bb381885a4fcc495fa19ec6ddb5be4e6c502d43a8f169e"
+			}
+		}
+	]
+}

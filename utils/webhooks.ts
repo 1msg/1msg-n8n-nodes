@@ -47,8 +47,9 @@ export function removeWebhookUrl(current: unknown, url: string): string[] {
 	return webhookUrls(current).filter((item) => !sameWebhookUrl(item, url));
 }
 
+/** Use the API single-URL representation for one webhook and an array for several; no URLs means no write body. */
 export function webhookWriteBody(urls: string[]): { webhookUrl: string | string[] } | undefined {
 	if (urls.length === 0) return undefined;
-	if (urls.length === 1) return { webhookUrl: urls[0] };
+	if (urls.length === 1 && urls[0] !== undefined) return { webhookUrl: urls[0] };
 	return { webhookUrl: urls };
 }

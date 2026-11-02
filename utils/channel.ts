@@ -9,10 +9,11 @@ export function stripAuthPrefix(raw: string): string {
 	return raw.replace(/^(Bearer|Basic)\s+/i, '').trim();
 }
 
+/** Decode the JWT payload locally to infer channel metadata; malformed or non-object payloads return null without authentication claims. */
 export function decodeJwtPayload(token: string): Record<string, unknown> | null {
 	const stripped = stripAuthPrefix(token);
 	const parts = stripped.split('.');
-	if (parts.length !== 3) return null;
+	if (parts.length !== 3 || parts[1] === undefined) return null;
 	try {
 		const padded = parts[1].replace(/-/g, '+').replace(/_/g, '/');
 		const json = Buffer.from(padded, 'base64').toString('utf8');
@@ -49,6 +50,7 @@ export function resolveInstanceId(apiKey: string, channelId?: string): string {
 	);
 }
 
+/** Resolve the selected or previously saved public API origin; custom and staging hosts cannot receive connection credentials. */
 export function resolveBaseUrl(environment: string | undefined, baseUrl?: string): string {
 	const env = (environment || '').trim().toLowerCase();
 	if (env === 'sandbox') return 'https://sandbox.1msg.io';
@@ -63,11 +65,15 @@ export function resolveBaseUrl(environment: string | undefined, baseUrl?: string
 	);
 }
 
-export function isSandboxHost(value: string): boolean {
+/** Recognize first-party sandbox hosts; malformed or unrelated URLs never receive sandbox query credentials. */
+function isSandboxHost(value: string): boolean {
 	const raw = value.trim();
 	if (!raw) return false;
 	try {
-		return new URL(raw.includes('://') ? raw : `https://${raw}`).hostname.toLowerCase() === 'sandbox.1msg.io';
+		return (
+			new URL(raw.includes('://') ? raw : `https://${raw}`).hostname.toLowerCase() ===
+			'sandbox.1msg.io'
+		);
 	} catch {
 		return false;
 	}
@@ -78,4 +84,22 @@ export function sandboxQuery(baseUrl: string, apiKey: string): Record<string, st
 	const key = stripAuthPrefix(apiKey);
 	if (!key || !isSandboxHost(baseUrl)) return {};
 	return { token: key };
+}
+
+/** Resolve one credential snapshot consistently for authentication and custom-request URL validation; invalid channels or URL schemes fail before I/O. */
+export function resolveChannelCredentials(credentials: Record<string, unknown>): {
+	apiKey: string;
+	baseUrl: string;
+	instanceId: string;
+} {
+	const apiKey = stripAuthPrefix(String(credentials.apiKey || ''));
+	const baseUrl = resolveBaseUrl(
+		String(credentials.environment || ''),
+		String(credentials.baseUrl || ''),
+	);
+	return {
+		apiKey,
+		baseUrl,
+		instanceId: resolveInstanceId(apiKey, String(credentials.channelId || '')),
+	};
 }

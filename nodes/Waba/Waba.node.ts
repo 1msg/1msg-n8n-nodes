@@ -4,10 +4,11 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 } from 'n8n-workflow';
+
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
-import { getTemplateVariables, searchTemplates } from './loadOptions';
 import { bindWabaExecute, toItemJson } from './execute';
+import { getTemplateVariables, searchTemplates } from './loadOptions';
 
 export class Waba implements INodeType {
 	description: INodeTypeDescription = {
@@ -295,7 +296,8 @@ export class Waba implements INodeType {
 				name: 'requestBody',
 				type: 'json',
 				default: '{}',
-				description: 'JSON body. Leave {} for requests that do not need one. Do not put the API key here.',
+				description:
+					'JSON body. Leave {} for requests that do not need one. Do not put the API key here.',
 				displayOptions: {
 					show: {
 						operation: ['apiCall'],

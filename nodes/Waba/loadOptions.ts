@@ -4,7 +4,6 @@ import type {
 	ResourceMapperFields,
 } from 'n8n-workflow';
 
-import { listApprovedTemplates } from './listTemplates';
 import {
 	findTemplate,
 	packTemplateValue,
@@ -12,6 +11,7 @@ import {
 	templateFields,
 	templateLabel,
 } from '../../utils/templates';
+import { listApprovedTemplates } from './listTemplates';
 
 function selectedTemplateKey(value: unknown): string {
 	if (typeof value === 'string') return value;
@@ -21,12 +21,14 @@ function selectedTemplateKey(value: unknown): string {
 	return '';
 }
 
+/** Search approved templates and store their metadata in bounded dropdown values for later execution. */
 export async function searchTemplates(
 	this: ILoadOptionsFunctions,
 	filter?: string,
 ): Promise<INodeListSearchResult> {
 	const templates = await listApprovedTemplates.call(this);
 	const query = (filter || '').trim().toLowerCase();
+	/** Filter the approved list before creating at most 300 named dropdown snapshots. */
 	const results = templates
 		.filter((template) => !query || templateLabel(template).toLowerCase().includes(query))
 		.slice(0, 300)
@@ -37,7 +39,10 @@ export async function searchTemplates(
 	return { results };
 }
 
-export async function getTemplateVariables(this: ILoadOptionsFunctions): Promise<ResourceMapperFields> {
+/** Derive resource-mapper fields from stored components or a refreshed selection, with useful empty-state diagnostics. */
+export async function getTemplateVariables(
+	this: ILoadOptionsFunctions,
+): Promise<ResourceMapperFields> {
 	const key = selectedTemplateKey(this.getCurrentNodeParameter('template'));
 	if (!key.trim()) {
 		return {
@@ -48,7 +53,7 @@ export async function getTemplateVariables(this: ILoadOptionsFunctions): Promise
 
 	const spec = readTemplateSpec(key);
 	let components = spec.components;
-	if (components == null) {
+	if (components === null || components === undefined) {
 		const templates = await listApprovedTemplates.call(this);
 		try {
 			components = findTemplate(templates, key).components;

@@ -1,0 +1,23 @@
+{
+	"entry": [
+		"nodes/Waba/Waba.node.ts!",
+		"nodes/WabaTrigger/WabaTrigger.node.ts!",
+		"credentials/OneMsgApi.credentials.ts!",
+		"scripts/copy-codex.js",
+		"scripts/pack-smoke.mjs",
+		"scripts/quality-extensions.test.mjs",
+		"scripts/quality-hook.test.mjs",
+		"scripts/quality-negative.mjs",
+		"eslint*.mjs",
+		"quality.config.mjs",
+		"test/**/*.test.js"
+	],
+	"project": [
+		"nodes/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}!",
+		"utils/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}!",
+		"credentials/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}!",
+		"test/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}",
+		"scripts/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"
+	],
+	"ignore": ["tools/quality/**"]
+}

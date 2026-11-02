@@ -6,11 +6,12 @@ import type {
 	IWebhookFunctions,
 	IWebhookResponseData,
 } from 'n8n-workflow';
+
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
-import { oneMsgRequest } from '../transport';
 import { selectEvents } from '../../utils/events';
 import { addWebhookUrl, removeWebhookUrl, sameWebhookUrl, webhookUrls } from '../../utils/webhooks';
+import { oneMsgRequest } from '../transport';
 
 async function writeWebhookList(this: IHookFunctions, urls: string[]): Promise<void> {
 	if (urls.length === 0) {
@@ -25,7 +26,9 @@ async function writeWebhookList(this: IHookFunctions, urls: string[]): Promise<v
 async function currentWebhookUrls(this: IHookFunctions): Promise<string[]> {
 	const response = await oneMsgRequest.call(this, 'GET', '/webhook');
 	const webhookUrl =
-		response && typeof response === 'object' ? (response as { webhookUrl?: unknown }).webhookUrl : undefined;
+		response && typeof response === 'object'
+			? (response as { webhookUrl?: unknown }).webhookUrl
+			: undefined;
 	return webhookUrls(webhookUrl);
 }
 
@@ -43,8 +46,7 @@ export class WabaTrigger implements INodeType {
 		group: ['trigger'],
 		version: 1,
 		subtitle: 'WhatsApp events',
-		description:
-			'Receive WhatsApp messages and delivery statuses through 1MSG.',
+		description: 'Receive WhatsApp messages and delivery statuses through 1MSG.',
 		defaults: {
 			name: '1MSG for WhatsApp Business API Trigger',
 		},
@@ -112,7 +114,10 @@ export class WabaTrigger implements INodeType {
 			async create(this: IHookFunctions): Promise<boolean> {
 				const url = this.getNodeWebhookUrl('default');
 				if (!url) {
-					throw new NodeOperationError(this.getNode(), 'n8n did not provide a webhook URL for this trigger.');
+					throw new NodeOperationError(
+						this.getNode(),
+						'n8n did not provide a webhook URL for this trigger.',
+					);
 				}
 				const urls = await currentWebhookUrls.call(this);
 				const next = addWebhookUrl(urls, url);

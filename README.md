@@ -22,11 +22,11 @@ On a self-hosted n8n you can also add the package to `N8N_CUSTOM_EXTENSIONS` or 
 
 Create a credential named **1MSG API**.
 
-| Field | What to paste |
-| --- | --- |
-| API key | The channel API key from 1MSG channel settings. The channel is read from this key. You can paste a rotated key into the same credential. |
-| Environment | **Production** is `https://api.1msg.io`. **Sandbox** is a test channel at `https://sandbox.1msg.io`. Other hosts are not allowed. |
-| Channel ID | Leave empty for a production key that already belongs to one channel. Fill it for a sandbox channel and for an older key. |
+| Field       | What to paste                                                                                                                            |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| API key     | The channel API key from 1MSG channel settings. The channel is read from this key. You can paste a rotated key into the same credential. |
+| Environment | **Production** is `https://api.1msg.io`. **Sandbox** is a test channel at `https://sandbox.1msg.io`. Other hosts are not allowed.        |
+| Channel ID  | Leave empty for a production key that already belongs to one channel. Fill it for a sandbox channel and for an older key.                |
 
 Sandbox does not read the `Authorization` header. For `https://sandbox.1msg.io` the node sends the same API key as the `token` query parameter, and only to that host. Production keeps the key in the header.
 
@@ -78,11 +78,11 @@ If delivery status is selected, the node turns on `ackNotificationsOn` for the c
 
 Each matching event becomes one item. The fields you filter on stay at the top. The rest of the webhook stays in `message` or `ack`.
 
-| `event` | When | Also on the item |
-| --- | --- | --- |
-| `incoming` | Customer message | `instanceId`, `chatId`, `message` |
-| `outgoing` | Business message | `instanceId`, `chatId`, `message` |
-| `status` | Delivery receipt | `instanceId`, `chatId`, `status`, `ack` |
+| `event`    | When             | Also on the item                        |
+| ---------- | ---------------- | --------------------------------------- |
+| `incoming` | Customer message | `instanceId`, `chatId`, `message`       |
+| `outgoing` | Business message | `instanceId`, `chatId`, `message`       |
+| `status`   | Delivery receipt | `instanceId`, `chatId`, `status`, `ack` |
 
 Message id, direction, type, and text are inside `message`. A delivery receipt’s id is inside `ack`.
 
@@ -122,3 +122,11 @@ Publishing to npm is done by GitHub Actions on a version tag, with a provenance 
 ## License
 
 MIT
+
+### Main refresh — 2026-11-02
+
+Integrated upstream `768dc82b9295fd5a8d8cad4d5eae9437458a0547`, retaining package version 0.1.10, the support contact update, production/sandbox-only connections and packed template selections. Snapshot decoding and send identity validation have explicit internal modules. The transport accepts grouped query/scope options; approved-template pagination and execution-local caching preserve their existing behavior.
+
+Historical inventories were replayed against the fetched main, replacing adoption base `2095313ddf94764cad0eb919a153259ff5213c85`. Complexity findings decreased from 12 to 9; unused production/full inventories decreased from 14/15 to 12/13. No new allowance, increased metric ceiling, or extended owner/issue/expiry was introduced.
+
+Validation covers strict types, static/typed/framework lint, architecture, both unused-code graphs, production/full clones and 21 offline runtime tests. Three new execution-level tests exercise query/scope forwarding, duplicate-page termination and direct sending from a stored template snapshot. The installed-hook and packed-consumer checks remain required. The hosted consumer matrix still covers Node 20 with the compatible legacy peer, plus Node 22 and 24. No package release was performed.

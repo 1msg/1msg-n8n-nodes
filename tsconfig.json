@@ -19,7 +19,10 @@
 		"declaration": true,
 		"sourceMap": true,
 		"skipLibCheck": true,
-		"outDir": "./dist/"
+		"outDir": "./dist/",
+		"noUncheckedIndexedAccess": true,
+		"exactOptionalPropertyTypes": true,
+		"noEmitOnError": true
 	},
 	"include": ["credentials/**/*", "nodes/**/*", "utils/**/*", "package.json"]
 }
