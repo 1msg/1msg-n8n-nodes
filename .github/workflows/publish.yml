@@ -35,34 +35,37 @@ jobs:
           import assert from 'node:assert/strict';
           import { readFileSync } from 'node:fs';
           const manifest = JSON.parse(readFileSync('package.json', 'utf8'));
-          const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
+          assert.equal(manifest.packageManager, 'pnpm@10.34.9');
           assert.equal(manifest.name, '@1msg/n8n-nodes-1msg');
           assert.equal(manifest.repository.url, 'git+https://github.com/1msg/1msg-n8n-nodes.git');
           assert.match(manifest.version, /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/);
           assert.ok(!manifest.publishConfig?.registry || manifest.publishConfig.registry.replace(/\/$/, '') === 'https://registry.npmjs.org');
-          assert.equal(lock.version, manifest.version, 'Lockfile version must match package.json');
-          assert.equal(lock.packages[''].version, manifest.version, 'Lockfile root package must match package.json');
           if (process.env.GITHUB_REF_TYPE === 'tag') assert.equal(process.env.GITHUB_REF_NAME, manifest.version);
           else assert.equal(process.env.GITHUB_REF, 'refs/heads/main');
           NODE
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10.34.9'
+          dest: ${{ runner.temp }}/pnpm-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
+          run_install: false
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24.19.0'
+          node-version: '24.22.2'
           registry-url: https://registry.npmjs.org/
-          cache: npm
+          cache: pnpm
       - name: Use the pinned npm version with OIDC support
-        run: npm install --global npm@11.17.0 --ignore-scripts --registry=https://registry.npmjs.org/
+        run: npm install --global npm@11.19.1 --ignore-scripts --registry=https://registry.npmjs.org/
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       - name: Validate framework lint, build and packed entrypoints
         run: |
-          npm run lint
-          npm run build
-          npm run test:pack
+          pnpm run lint
+          pnpm run build
+          pnpm run test:pack
       - name: Rehearse packing without changing the registry
         if: github.event_name == 'workflow_dispatch'
         run: npm pack --ignore-scripts --dry-run
       - name: Release with the existing n8n lint/build/provenance checks
         if: github.event_name == 'push'
-        run: npm run release
+        run: pnpm run release

@@ -1,6 +1,6 @@
 {
 	"name": "@1msg/n8n-nodes-1msg",
-	"version": "0.1.11",
+	"version": "0.1.12",
 	"description": "Send WhatsApp messages, receive webhooks, and make any API request using the official WhatsApp API through 1MSG.",
 	"license": "MIT",
 	"publishConfig": {
@@ -30,7 +30,7 @@
 		"lint:fix": "n8n-node lint --fix",
 		"release": "n8n-node release",
 		"prepublishOnly": "n8n-node prerelease",
-		"test": "npm run build && node --test test/*.test.js",
+		"test": "pnpm run build && node --test test/*.test.js",
 		"typecheck": "tsc -p tsconfig.quality.json",
 		"lint:static": "node tools/quality/node_modules/eslint/bin/eslint.js -c eslint.static.config.mjs . --max-warnings=0",
 		"lint:typed": "node tools/quality/node_modules/eslint/bin/eslint.js -c eslint.typed.config.mjs . --max-warnings=0",
@@ -73,7 +73,7 @@
 	"peerDependencies": {
 		"n8n-workflow": "*"
 	},
-	"packageManager": "npm@11.17.0",
+	"packageManager": "pnpm@10.34.9",
 	"lint-staged": {
 		"*.{js,jsx,mjs,cjs}": [
 			"node tools/quality/staged.mjs --config eslint.static.config.mjs --",
