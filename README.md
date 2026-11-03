@@ -108,12 +108,12 @@ Send a template when a CRM row is created:
 ## Development
 
 ```bash
-npm install
-npm test
-npm run dev
+pnpm install --frozen-lockfile
+pnpm test
+pnpm run dev
 ```
 
-`npm test` builds the package and runs the unit tests. `npm run dev` opens a local n8n with this node loaded.
+`pnpm test` builds the package and runs the unit tests. `pnpm run dev` opens a local n8n with this node loaded.
 
 Source: [github.com/1msg/1msg-n8n-nodes](https://github.com/1msg/1msg-n8n-nodes). The npm package is `@1msg/n8n-nodes-1msg`. n8n loads community nodes named `n8n-nodes-…` or `@scope/n8n-nodes-…`.
 
