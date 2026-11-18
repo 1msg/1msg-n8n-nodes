@@ -65,10 +65,10 @@
 	},
 	"devDependencies": {
 		"@n8n/node-cli": "*",
-		"eslint": "9.39.4",
-		"prettier": "3.8.3",
-		"release-it": "20.2.0",
-		"typescript": "5.9.3"
+		"eslint": "9.29.0",
+		"prettier": "3.10.1",
+		"release-it": "21.1.2",
+		"typescript": "6.0.3"
 	},
 	"peerDependencies": {
 		"n8n-workflow": "*"
@@ -87,5 +87,10 @@
 			"node tools/quality/node_modules/eslint/bin/eslint.js --config eslint.typed.config.mjs --max-warnings=0 --no-warn-ignored"
 		],
 		"*.{json,md,yml,yaml}": "node tools/quality/node_modules/prettier/bin/prettier.cjs --write"
+	},
+	"pnpm": {
+		"overrides": {
+			"eslint-plugin-n8n-nodes-base": "2.0.0"
+		}
 	}
 }
